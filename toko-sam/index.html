@@ -508,8 +508,10 @@
             if (customSettings[key] && customSettings[key].hargaJual) {
                 if (customSettings[key].isFlashSale && customSettings[key].flashSalePrice) {
                     // Periksa apakah flash sale masih berlaku
-                    const isNotExpired = !customSettings[key].flashSaleEnd || customSettings[key].flashSaleEnd > Date.now();
-                    if (isNotExpired) {
+                    const now = Date.now();
+                    const startOk = !customSettings[key].flashSaleStart || customSettings[key].flashSaleStart <= now;
+                    const endOk = !customSettings[key].flashSaleEnd || customSettings[key].flashSaleEnd > now;
+                    if (startOk && endOk) {
                         return Number.parseInt(customSettings[key].flashSalePrice);
                     }
                 }
@@ -559,8 +561,11 @@
                                 const key = produk.name + "|" + v.name + "|" + v.price;
                                 const customSettings = globalCustomPrices;
                                 if (customSettings[key] && customSettings[key].isFlashSale) {
-                                    const isValid = !customSettings[key].flashSaleEnd || customSettings[key].flashSaleEnd > Date.now();
-                                    if (isValid) {
+                                    const now = Date.now();
+                                    const startOk = !customSettings[key].flashSaleStart || customSettings[key].flashSaleStart <= now;
+                                    const endOk = !customSettings[key].flashSaleEnd || customSettings[key].flashSaleEnd > now;
+                                    
+                                    if (startOk && endOk) {
                                         isFlashSale = true;
                                         if (!flashSaleEnd) flashSaleEnd = customSettings[key].flashSaleEnd;
                                         if (customSettings[key].hargaJual > hargaAsliTinggi) hargaAsliTinggi = customSettings[key].hargaJual;
