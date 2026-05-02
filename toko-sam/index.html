@@ -361,6 +361,7 @@
         <script>
         let windowProducts = [];
         let pesananAktif = { produk: '', varian: '', harga: 0, angkaUnik: 0, total: 0, stok: 0 };
+        let globalCustomPrices = {};
 
         // 0. Fungsi Data Harga Bawaan Universal (Agar HP & Laptop Sama)
         function getHargaTable(produk, varian) {
@@ -476,24 +477,22 @@
                 { key: ["hma", "express"], fallback: 13439 }
             ];
 
+            function checkMatch(check, textStr, modalPrice) {
+                if (check.k && check.k2) return textStr.includes(check.k) && textStr.includes(check.k2);
+                if (check.k) return textStr.includes(check.k);
+                if (check.m) return modalPrice === check.m;
+                return false;
+            }
+
             for (const rule of rules) {
                 const keys = Array.isArray(rule.key) ? rule.key : [rule.key];
-                if (keys.some(k => p.includes(k))) {
-                    if (rule.fallback !== undefined) return rule.fallback;
-                    for (const check of rule.checks) {
-                        if (check.defaultPrice !== undefined) return check.defaultPrice;
-                        
-                        let match = false;
-                        if (check.k && check.k2) {
-                            match = teks.includes(check.k) && teks.includes(check.k2);
-                        } else if (check.k) {
-                            match = teks.includes(check.k);
-                        } else if (check.m) {
-                            match = modal === check.m;
-                        }
-                        
-                        if (match) return check.p;
-                    }
+                if (!keys.some(k => p.includes(k))) continue;
+                
+                if (rule.fallback !== undefined) return rule.fallback;
+                
+                const matchedCheck = rule.checks.find(check => check.defaultPrice !== undefined || checkMatch(check, teks, modal));
+                if (matchedCheck) {
+                    return matchedCheck.defaultPrice !== undefined ? matchedCheck.defaultPrice : matchedCheck.p;
                 }
             }
 
@@ -504,7 +503,7 @@
         function hitungHargaJual(produk, varian) {
             // A. Cek Prioritas Pertama: Data Kustom dari Admin Panel
             const key = produk.name + "|" + varian.name + "|" + varian.price;
-            const customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+            const customSettings = globalCustomPrices;
             
             if (customSettings[key] && customSettings[key].hargaJual) {
                 if (customSettings[key].isFlashSale && customSettings[key].flashSalePrice) {
@@ -528,6 +527,15 @@
         // 2. Fetch API
         async function fetchProduk() {
             try {
+                // Sinkronisasi data harga kustom & flash sale dari Database Cloud
+                const resPrice = await fetch('/api/get-prices');
+                if (resPrice.ok) {
+                    const priceData = await resPrice.json();
+                    if (priceData.success && priceData.data) {
+                        globalCustomPrices = priceData.data;
+                    }
+                }
+
                 const response = await fetch('/api/products');
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
@@ -547,9 +555,9 @@
                                 if (h < hargaTermurah) hargaTermurah = h;
                                 totalStok += v.stock;
                                 
-                                // Cek apakah ada status Flash Sale di Local Storage
+                                // Cek apakah ada status Flash Sale di Database Cloud
                                 const key = produk.name + "|" + v.name + "|" + v.price;
-                                const customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+                                const customSettings = globalCustomPrices;
                                 if (customSettings[key] && customSettings[key].isFlashSale) {
                                     const isValid = !customSettings[key].flashSaleEnd || customSettings[key].flashSaleEnd > Date.now();
                                     if (isValid) {
@@ -591,7 +599,7 @@
             }
         }
 
-        // 3. Render Card HTML Mirip Screenshot Warung Rebahan
+        // 3. Render Card HTML
         function renderKatalog(products) {
             const wadah = document.getElementById('katalog-produk');
             let htmlContent = '';
@@ -823,7 +831,13 @@
                         const match = v.name.match(/\(([^)]+)\)/);
                         if (match) d = match[1];
                     }
-                    let tipeAkun = v.type || (v.name.toLowerCase().includes('private') ? 'Private' : (v.name.toLowerCase().includes('sharing') ? 'Sharing' : '-'));
+                    let tipeAkun = v.type;
+                    if (!tipeAkun) {
+                        const nameLower = v.name.toLowerCase();
+                        if (nameLower.includes('private')) tipeAkun = 'Private';
+                        else if (nameLower.includes('sharing')) tipeAkun = 'Sharing';
+                        else tipeAkun = '-';
+                    }
                     let garansi = v.warranty || '-';
 
                     let namaAman = v.name.replaceAll("'", "&apos;").replaceAll('"', "&quot;");
