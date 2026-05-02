@@ -163,6 +163,44 @@
             </div>
         </div>
 
+        <!-- Modal Flash Sale Massal -->
+        <div id="bulkFlashSaleModal"
+            class="fixed inset-0 z-[60] bg-slate-900/60 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-all">
+            <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-lg relative">
+                <button onclick="closeBulkFlashSaleModal()"
+                    class="absolute top-6 right-6 text-slate-400 hover:text-rose-500"><i
+                        class="fas fa-times text-xl"></i></button>
+                <h2 class="text-xl font-black text-slate-800 mb-1">Flash Sale Massal</h2>
+                <p class="text-sm font-bold text-blue-600 mb-6">Terapkan diskon (%) untuk varian terpilih.</p>
+
+                <form id="bulkFlashSaleForm" onsubmit="saveBulkFlashSale(event)" class="space-y-4">
+                    <div>
+                        <label for="bulk-discount-percent" class="block text-xs font-black text-slate-700 mb-2">POTONGAN DISKON (%)</label>
+                        <div class="relative">
+                            <input type="number" id="bulk-discount-percent" min="1" max="99" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 outline-none font-bold" required>
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-black">%</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-4">
+                        <div>
+                            <label for="bulk-waktu-flashsale-start" class="block text-[10px] font-black text-slate-700 mb-1.5 tracking-wider">MULAI PADA</label>
+                            <input type="datetime-local" id="bulk-waktu-flashsale-start" class="w-full px-3 py-3 bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none font-bold text-slate-700 text-xs" required>
+                        </div>
+                        <div>
+                            <label for="bulk-waktu-flashsale-end" class="block text-[10px] font-black text-slate-700 mb-1.5 tracking-wider">BERAKHIR PADA</label>
+                            <input type="datetime-local" id="bulk-waktu-flashsale-end" class="w-full px-3 py-3 bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none font-bold text-slate-700 text-xs" required>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex gap-3">
+                        <button type="button" onclick="closeBulkFlashSaleModal()" class="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-[13px] hover:bg-slate-200 transition-all">Batal</button>
+                        <button type="submit" class="flex-1 py-3.5 bg-rose-600 text-white rounded-xl font-bold text-[13px] hover:bg-rose-700 shadow-lg shadow-rose-600/30 transition-all"><i class="fas fa-bolt"></i> Terapkan Diskon</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Sidebar (Desktop & Mobile) -->
         <aside id="adminSidebar"
             class="w-64 bg-[#0f172a] text-white flex-col fixed md:relative z-40 h-full transition-transform duration-300 -translate-x-full md:translate-x-0 flex shrink-0">
@@ -335,24 +373,9 @@
                             </div>
                             <div
                                 class="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
-                                <div class="relative w-full sm:w-48">
-                                    <i
-                                        class="fas fa-sort absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                    <select id="sortAdminProduct"
-                                        onchange="filterAdminProducts()"
-                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:border-blue-500 outline-none appearance-none cursor-pointer">
-                                        <option value="default">Urutan
-                                            Default</option>
-                                        <option value="nama_az">Nama (A -
-                                            Z)</option>
-                                        <option value="stok_banyak">Stok
-                                            Terbanyak</option>
-                                        <option value="stok_sedikit">Stok
-                                            Tersedikit</option>
-                                    </select>
-                                    <i
-                                        class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                                </div>
+                                <button onclick="openBulkFlashSaleModal()" class="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-xl text-sm font-black hover:from-rose-600 hover:to-rose-700 shadow-md shadow-rose-500/20 transition-all flex items-center justify-center gap-2">
+                                    <i class="fas fa-bolt"></i> Flash Sale Massal (<span id="count-selected">0</span>)
+                                </button>
                                 <div class="relative w-full sm:w-56">
                                     <i
                                         class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -369,15 +392,24 @@
                                 <thead>
                                     <tr
                                         class="border-b-2 border-slate-200 text-[10px] uppercase tracking-widest text-slate-400">
-                                        <th class="pb-3 font-black">Produk &
-                                            Varian</th>
-                                        <th class="pb-3 font-black">Stok</th>
-                                        <th class="pb-3 font-black">Harga
-                                            Modal</th>
-                                        <th class="pb-3 font-black">Harga
-                                            Jual</th>
-                                        <th class="pb-3 font-black">Flash
-                                            Sale</th>
+                                        <th class="pb-3 w-10 text-center">
+                                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer">
+                                        </th>
+                                        <th class="pb-3 font-black cursor-pointer hover:text-blue-600 select-none group" onclick="handleSort('nama')">
+                                            Produk & Varian <i id="sort-icon-nama" class="fas fa-sort ml-1 text-slate-300 group-hover:text-blue-500"></i>
+                                        </th>
+                                        <th class="pb-3 font-black cursor-pointer hover:text-blue-600 select-none group" onclick="handleSort('stok')">
+                                            Stok <i id="sort-icon-stok" class="fas fa-sort ml-1 text-slate-300 group-hover:text-blue-500"></i>
+                                        </th>
+                                        <th class="pb-3 font-black cursor-pointer hover:text-blue-600 select-none group" onclick="handleSort('modal')">
+                                            Harga Modal <i id="sort-icon-modal" class="fas fa-sort ml-1 text-slate-300 group-hover:text-blue-500"></i>
+                                        </th>
+                                        <th class="pb-3 font-black cursor-pointer hover:text-blue-600 select-none group" onclick="handleSort('jual')">
+                                            Harga Jual <i id="sort-icon-jual" class="fas fa-sort ml-1 text-slate-300 group-hover:text-blue-500"></i>
+                                        </th>
+                                        <th class="pb-3 font-black cursor-pointer hover:text-blue-600 select-none group" onclick="handleSort('flash')">
+                                            Flash Sale <i id="sort-icon-flash" class="fas fa-sort ml-1 text-slate-300 group-hover:text-blue-500"></i>
+                                        </th>
                                         <th
                                             class="pb-3 font-black text-right">Aksi</th>
                                     </tr>
@@ -551,11 +583,52 @@
             // ----------------------------------------------------
             let adminGlobalProducts = [];
             let globalCustomPrices = {};
+            let currentSort = { key: 'default', dir: 'asc' };
+            let selectedVariants = new Set();
+
+            // Logika Header Tabel Klik
+            function handleSort(key) {
+                if (currentSort.key === key) {
+                    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.key = key;
+                    currentSort.dir = 'asc';
+                }
+                renderAdminProducts();
+            }
+
+            function updateSortIcons() {
+                const icons = ['nama', 'stok', 'modal', 'jual', 'flash'];
+                icons.forEach(id => {
+                    const el = document.getElementById(`sort-icon-${id}`);
+                    if(el) {
+                        if (currentSort.key === id) {
+                            el.className = currentSort.dir === 'asc' ? 'fas fa-sort-up ml-1 text-blue-600' : 'fas fa-sort-down ml-1 text-blue-600';
+                        } else {
+                            el.className = 'fas fa-sort ml-1 text-slate-300 group-hover:text-blue-500';
+                        }
+                    }
+                });
+            }
+
+            // Logika Checkbox Tabel
+            function toggleVariantSelection(key, isChecked) {
+                if (isChecked) selectedVariants.add(key);
+                else selectedVariants.delete(key);
+                document.getElementById('count-selected').textContent = selectedVariants.size;
+                updateSelectAllCheckbox();
+            }
+
+            function updateSelectAllCheckbox() {
+                const checkboxes = document.querySelectorAll('.variant-checkbox');
+                const allChecked = checkboxes.length > 0 && Array.from(checkboxes).every(cb => cb.checked);
+                const selectAllCb = document.getElementById('selectAllCheckbox');
+                if(selectAllCb) selectAllCb.checked = allChecked;
+            }
 
             function renderAdminProducts() {
                 const tbody = document.getElementById('admin-product-list');
                 const keyword = document.getElementById('searchAdminProduct')?.value.toLowerCase() || "";
-                const sortVal = document.getElementById('sortAdminProduct')?.value || "default";
                 tbody.innerHTML = '';
                 
                 // Ambil setelan harga dari Cloud
@@ -576,9 +649,29 @@
                 }
 
                 // Sorting
-                if (sortVal === 'nama_az') displayList.sort((a,b) => (a.produk.name + a.varian.name).localeCompare(b.produk.name + b.varian.name));
-                else if (sortVal === 'stok_banyak') displayList.sort((a,b) => b.varian.stock - a.varian.stock);
-                else if (sortVal === 'stok_sedikit') displayList.sort((a,b) => a.varian.stock - b.varian.stock);
+                if (currentSort.key === 'nama') {
+                    displayList.sort((a,b) => {
+                        const cmp = (a.produk.name + a.varian.name).localeCompare(b.produk.name + b.varian.name);
+                        return currentSort.dir === 'asc' ? cmp : -cmp;
+                    });
+                } else if (currentSort.key === 'stok') {
+                    displayList.sort((a,b) => currentSort.dir === 'asc' ? a.varian.stock - b.varian.stock : b.varian.stock - a.varian.stock);
+                } else if (currentSort.key === 'modal') {
+                    displayList.sort((a,b) => currentSort.dir === 'asc' ? a.varian.price - b.varian.price : b.varian.price - a.varian.price);
+                } else if (currentSort.key === 'jual') {
+                    const getJual = (item) => {
+                        const s = customSettings[item.produk.name + "|" + item.varian.name + "|" + item.varian.price];
+                        return s && s.hargaJual ? s.hargaJual : item.varian.price + 5000;
+                    };
+                    displayList.sort((a,b) => currentSort.dir === 'asc' ? getJual(a) - getJual(b) : getJual(b) - getJual(a));
+                } else if (currentSort.key === 'flash') {
+                    const getFlash = (item) => {
+                        const s = customSettings[item.produk.name + "|" + item.varian.name + "|" + item.varian.price];
+                        return s && s.isFlashSale ? 1 : 0;
+                    };
+                    displayList.sort((a,b) => currentSort.dir === 'asc' ? getFlash(a) - getFlash(b) : getFlash(b) - getFlash(a));
+                }
+                updateSortIcons();
 
                 // Loop untuk merender baris
                 displayList.forEach((item) => {
@@ -614,10 +707,14 @@
                                             </div>`;
                     }
 
+                    const safeKey = key.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                     const isHabis = varian.stock <= 0;
                     const row = document.createElement('tr');
                     row.className = `border-b border-slate-100 transition-colors ${isHabis ? 'bg-rose-50/50' : 'hover:bg-slate-50'}`;
                     row.innerHTML = `
+                        <td class="py-3 text-center pr-2">
+                            <input type="checkbox" class="variant-checkbox w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer" value="${safeKey}" onchange="toggleVariantSelection(this.value, this.checked)" ${selectedVariants.has(key) ? 'checked' : ''}>
+                        </td>
                         <td class="py-3 pr-4">
                             <div class="font-black text-slate-800">${produk.name}</div>
                             <div class="text-xs font-bold text-slate-500">${varian.name}</div>
@@ -640,6 +737,8 @@
                     `;
                     tbody.appendChild(row);
                 });
+
+                updateSelectAllCheckbox();
             }
 
             function filterAdminProducts() { renderAdminProducts(); }
@@ -682,6 +781,77 @@
             }
 
             function closeEditModal() { document.getElementById('editProductModal').classList.add('hidden'); }
+
+            // Logika Flash Sale Massal (Bulk)
+            function toggleSelectAll() {
+                const isChecked = document.getElementById('selectAllCheckbox').checked;
+                const checkboxes = document.querySelectorAll('.variant-checkbox');
+                checkboxes.forEach(cb => {
+                    cb.checked = isChecked;
+                    if(isChecked) selectedVariants.add(cb.value);
+                    else selectedVariants.delete(cb.value);
+                });
+                document.getElementById('count-selected').textContent = selectedVariants.size;
+            }
+
+            function openBulkFlashSaleModal() {
+                if (selectedVariants.size === 0) {
+                    showToast("Pilih minimal 1 varian produk terlebih dahulu!");
+                    return;
+                }
+                let tzoffset = (new Date()).getTimezoneOffset() * 60000; 
+                document.getElementById('bulk-waktu-flashsale-start').value = new Date(Date.now() - tzoffset).toISOString().slice(0, 16);
+                document.getElementById('bulk-waktu-flashsale-end').value = new Date(Date.now() + 86400000 - tzoffset).toISOString().slice(0, 16);
+                document.getElementById('bulkFlashSaleModal').classList.remove('hidden');
+            }
+
+            function closeBulkFlashSaleModal() { document.getElementById('bulkFlashSaleModal').classList.add('hidden'); }
+
+            async function saveBulkFlashSale(e) {
+                e.preventDefault();
+                const discountPercent = Number.parseFloat(document.getElementById('bulk-discount-percent').value);
+                const flashStartInput = document.getElementById('bulk-waktu-flashsale-start').value;
+                const flashEndInput = document.getElementById('bulk-waktu-flashsale-end').value;
+                const flashSaleStart = flashStartInput ? new Date(flashStartInput).getTime() : null;
+                const flashSaleEnd = flashEndInput ? new Date(flashEndInput).getTime() : null;
+
+                let customSettings = globalCustomPrices;
+                let updatedCount = 0;
+
+                adminGlobalProducts.forEach(produk => {
+                    if (!produk.variants) return;
+                    produk.variants.forEach(varian => {
+                        const key = produk.name + "|" + varian.name + "|" + varian.price;
+                        if (selectedVariants.has(key)) {
+                            let setting = customSettings[key] || {};
+                            let hargaJualDef = varian.price + 5000;
+                            let activeJual = setting.hargaJual || hargaJualDef;
+                            
+                            let flashPrice = activeJual - (activeJual * (discountPercent / 100));
+                            
+                            setting.isFlashSale = true;
+                            setting.flashSalePrice = Math.floor(flashPrice);
+                            setting.flashSaleStart = flashSaleStart;
+                            setting.flashSaleEnd = flashSaleEnd;
+                            if (!setting.hargaJual) setting.hargaJual = activeJual;
+
+                            customSettings[key] = setting;
+                            updatedCount++;
+                        }
+                    });
+                });
+
+                globalCustomPrices = customSettings;
+                try {
+                    await fetch('/api/save-prices', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(customSettings) });
+                } catch (error) { console.error("Gagal menyimpan ke cloud:", error); }
+                
+                closeBulkFlashSaleModal();
+                selectedVariants.clear();
+                document.getElementById('count-selected').textContent = '0';
+                renderAdminProducts();
+                showToast(`${updatedCount} Varian di-Flash Sale Serentak!`);
+            }
 
             async function saveProductEdit(e) {
                 e.preventDefault();
