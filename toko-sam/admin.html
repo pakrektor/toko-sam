@@ -410,10 +410,12 @@
         <!-- Script Logika Login -->
         <script>
             // Cek apakah admin sudah login sebelumnya (Sesi Tersimpan)
-            if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-                document.getElementById('loginOverlay').classList.add('hidden');
-                fetchDashboardData().catch(console.error);
-            }
+            (async () => {
+                if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+                    document.getElementById('loginOverlay').classList.add('hidden');
+                    await fetchDashboardData();
+                }
+            })();
 
             async function prosesLogin(e) {
                 e.preventDefault(); // Mencegah halaman refresh saat form disubmit
@@ -431,7 +433,7 @@
                     if (data.success) {
                         sessionStorage.setItem('adminLoggedIn', 'true'); // Simpan sesi
                         document.getElementById('loginOverlay').classList.add('hidden'); // Sembunyikan form login
-                        fetchDashboardData().catch(console.error); // Muat data dashboard
+                        await fetchDashboardData(); // Muat data dashboard
                     } else {
                         document.getElementById('pesanError').classList.remove('hidden'); // Tampilkan error
                     }
@@ -482,6 +484,15 @@
             // Mengambil Data Saldo dan Produk dari API
             async function fetchDashboardData() {
                 try {
+                    // Tarik harga dan konfigurasi dari Vercel KV Database Cloud
+                    const resPrice = await fetch('/api/get-prices');
+                    if (resPrice.ok) {
+                        const priceData = await resPrice.json();
+                        if (priceData.success && priceData.data) {
+                            globalCustomPrices = priceData.data;
+                        }
+                    }
+
                     // Fetch Saldo Admin (Dari file api/balance.js)
                     const resBalance = await fetch('/api/balance');
                     const dataBalance = await resBalance.json();
@@ -507,14 +518,15 @@
             // LOGIKA KELOLA PRODUK (Admin Panel)
             // ----------------------------------------------------
             let adminGlobalProducts = [];
+            let globalCustomPrices = {};
 
             function renderAdminProducts() {
                 const tbody = document.getElementById('admin-product-list');
                 const keyword = document.getElementById('searchAdminProduct')?.value.toLowerCase() || "";
                 tbody.innerHTML = '';
                 
-                // Ambil setelan harga yang pernah disimpan
-                const customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+                // Ambil setelan harga dari Cloud
+                const customSettings = globalCustomPrices;
 
                 adminGlobalProducts.forEach((produk, pIdx) => {
                     if (!produk.variants) return;
@@ -577,7 +589,7 @@
                 const varian = produk.variants[vIdx];
                 const key = produk.name + "|" + varian.name + "|" + varian.price;
                 
-                const customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+                const customSettings = globalCustomPrices;
                 const setting = customSettings[key];
 
                 document.getElementById('edit-product-name').textContent = `${produk.name} - ${varian.name}`;
@@ -610,7 +622,7 @@
 
             function closeEditModal() { document.getElementById('editProductModal').classList.add('hidden'); }
 
-            function saveProductEdit(e) {
+            async function saveProductEdit(e) {
                 e.preventDefault();
                 const pIdx = document.getElementById('edit-prod-idx').value;
                 const vIdx = document.getElementById('edit-var-idx').value;
@@ -623,7 +635,7 @@
                 const varian = adminGlobalProducts[pIdx].variants[vIdx];
                 const key = adminGlobalProducts[pIdx].name + "|" + varian.name + "|" + varian.price;
 
-                let customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+                let customSettings = globalCustomPrices;
                 
                 customSettings[key] = {
                     hargaJual: hargaJual,
@@ -632,7 +644,17 @@
                     flashSaleEnd: flashSaleEnd
                 };
 
-                localStorage.setItem('tokoSamCustomPrices', JSON.stringify(customSettings));
+                // Simpan ke State dan Sinkronkan ke Cloud Vercel KV
+                globalCustomPrices = customSettings;
+                try {
+                    await fetch('/api/save-prices', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(customSettings)
+                    });
+                } catch (error) {
+                    console.error("Gagal menyimpan ke cloud:", error);
+                }
                 
                 closeEditModal();
                 renderAdminProducts();
@@ -755,36 +777,34 @@
                     { key: ["hma", "express"], fallback: 13439 }
                 ];
     
+                function checkMatch(check, textStr, modalPrice) {
+                    if (check.k && check.k2) return textStr.includes(check.k) && textStr.includes(check.k2);
+                    if (check.k) return textStr.includes(check.k);
+                    if (check.m) return modalPrice === check.m;
+                    return false;
+                }
+
                 for (const rule of rules) {
                     const keys = Array.isArray(rule.key) ? rule.key : [rule.key];
-                    if (keys.some(k => p.includes(k))) {
-                        if (rule.fallback !== undefined) return rule.fallback;
-                        for (const check of rule.checks) {
-                            if (check.defaultPrice !== undefined) return check.defaultPrice;
-                            
-                            let match = false;
-                            if (check.k && check.k2) {
-                                match = teks.includes(check.k) && teks.includes(check.k2);
-                            } else if (check.k) {
-                                match = teks.includes(check.k);
-                            } else if (check.m) {
-                                match = modal === check.m;
-                            }
-                            
-                            if (match) return check.p;
-                        }
+                    if (!keys.some(k => p.includes(k))) continue;
+                    
+                    if (rule.fallback !== undefined) return rule.fallback;
+                    
+                    const matchedCheck = rule.checks.find(check => check.defaultPrice !== undefined || checkMatch(check, teks, modal));
+                    if (matchedCheck) {
+                        return matchedCheck.defaultPrice !== undefined ? matchedCheck.defaultPrice : matchedCheck.p;
                     }
                 }
 
                 return null;
             }
 
-            function seedDatabase() {
+            async function seedDatabase() {
                 if (!adminGlobalProducts || adminGlobalProducts.length === 0) {
                     showToast("Gagal. Tunggu data produk termuat!");
                     return;
                 }
-                let customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+                let customSettings = globalCustomPrices;
                 let updatedCount = 0;
 
                 adminGlobalProducts.forEach((produk) => {
@@ -800,7 +820,19 @@
                         }
                     });
                 });
-                localStorage.setItem('tokoSamCustomPrices', JSON.stringify(customSettings));
+
+                // Sinkronkan ke Cloud Vercel KV
+                globalCustomPrices = customSettings;
+                try {
+                    await fetch('/api/save-prices', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(customSettings)
+                    });
+                } catch (error) {
+                    console.error("Gagal menyimpan ke cloud:", error);
+                }
+
                 renderAdminProducts();
                 showToast(`${updatedCount} Data Harga Berhasil Disiapkan!`);
             }
