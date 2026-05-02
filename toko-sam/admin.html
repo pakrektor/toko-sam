@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin Dashboard - Toko Sam</title>
+        <!-- Tailwind CSS & Google Fonts -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800;900&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+    </head>
+    <body class="flex h-screen overflow-hidden text-slate-800">
+
+        <!-- Toast Notification -->
+        <div id="toastSuccess"
+            class="fixed top-5 right-5 z-[70] bg-emerald-500 text-white px-5 py-3 rounded-xl shadow-lg transform transition-all duration-300 translate-x-[150%] opacity-0 flex items-center gap-3 font-bold text-sm">
+            <i class="fas fa-check-circle text-lg"></i>
+            <span id="toastMsg">Berhasil disimpan!</span>
+        </div>
+
+        <!-- Overlay Form Login Admin -->
+        <div id="loginOverlay"
+            class="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center p-4 transition-all duration-300">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
+                <div class="text-center mb-8">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-400 rounded-2xl flex items-center justify-center text-white shadow-lg mx-auto mb-4">
+                        <i class="fas fa-lock text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800">Admin
+                        Panel</h2>
+                    <p
+                        class="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Silakan
+                        Login</p>
+                </div>
+
+                <form id="loginForm" onsubmit="prosesLogin(event)"
+                    class="space-y-5">
+                    <div>
+                        <label for="inputUser"
+                            class="block text-xs font-black text-slate-700 mb-2">USERNAME</label>
+                        <input type="text" id="inputUser"
+                            class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none text-sm font-medium transition-all"
+                            placeholder="Masukkan username..." required>
+                    </div>
+                    <div>
+                        <label for="inputPass"
+                            class="block text-xs font-black text-slate-700 mb-2">PASSWORD</label>
+                        <input type="password" id="inputPass"
+                            class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none text-sm font-medium transition-all"
+                            placeholder="Masukkan password..." required>
+                    </div>
+
+                    <p id="pesanError"
+                        class="text-xs font-bold text-rose-500 hidden text-center bg-rose-50 p-2 rounded-lg"><i
+                            class="fas fa-exclamation-triangle"></i> Username
+                        atau password salah!</p>
+
+                    <button type="submit"
+                        class="w-full py-4 bg-blue-600 text-white rounded-xl font-black text-[13px] hover:bg-blue-700 shadow-lg shadow-blue-600/30 transition-all flex justify-center items-center gap-2 uppercase tracking-wider mt-4">
+                        Masuk Dashboard <i class="fas fa-arrow-right"></i>
+                    </button>
+
+                    <a href="index.html"
+                        class="block text-center text-xs font-bold text-slate-400 hover:text-blue-600 mt-5 transition-colors"><i
+                            class="fas fa-arrow-left"></i> Kembali ke Toko
+                        Utama</a>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Edit Produk Admin -->
+        <div id="editProductModal"
+            class="fixed inset-0 z-[60] bg-slate-900/60 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-all">
+            <div
+                class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-lg relative">
+                <button onclick="closeEditModal()"
+                    class="absolute top-6 right-6 text-slate-400 hover:text-rose-500"><i
+                        class="fas fa-times text-xl"></i></button>
+                <h2 class="text-xl font-black text-slate-800 mb-1">Atur Harga
+                    Varian</h2>
+                <p id="edit-product-name"
+                    class="text-sm font-bold text-blue-600 mb-6">Nama Produk -
+                    Varian</p>
+
+                <form id="editProductForm" onsubmit="saveProductEdit(event)"
+                    class="space-y-4">
+                    <input type="hidden" id="edit-prod-idx">
+                    <input type="hidden" id="edit-var-idx">
+
+                    <div>
+                        <label for="edit-harga-jual"
+                            class="block text-xs font-black text-slate-700 mb-2">HARGA
+                            JUAL REGULER (RP)</label>
+                        <input type="number" id="edit-harga-jual"
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 outline-none font-bold"
+                            required>
+                    </div>
+
+                    <div
+                        class="p-4 border border-blue-100 bg-blue-50/50 rounded-xl space-y-4 mt-2">
+                        <div class="flex items-center justify-between">
+                            <span id="label-flashsale"
+                                class="text-xs font-black text-slate-700">AKTIFKAN
+                                FLASH SALE</span>
+                            <label aria-labelledby="label-flashsale"
+                                class="relative inline-flex items-center cursor-pointer"
+                                for="edit-is-flashsale">
+                                <input type="checkbox" id="edit-is-flashsale"
+                                    class="sr-only peer"
+                                    onchange="toggleFlashSaleInput()">
+                                <div
+                                    class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-500"></div>
+                            </label>
+                        </div>
+                        <div id="flashsale-input-container"
+                            class="hidden space-y-4 mt-3">
+                            <div>
+                                <label for="edit-harga-flashsale"
+                                    class="block text-[10px] font-black text-rose-500 mb-1.5 tracking-wider">HARGA
+                                    FLASH SALE (RP)</label>
+                                <input type="number" id="edit-harga-flashsale"
+                                    class="w-full px-4 py-3 bg-white border border-rose-200 rounded-xl focus:border-rose-500 outline-none font-black text-rose-600">
+                            </div>
+                            <div>
+                                <label for="edit-waktu-flashsale"
+                                    class="block text-[10px] font-black text-rose-500 mb-1.5 tracking-wider">BATAS
+                                    WAKTU (BERAKHIR PADA)</label>
+                                <input type="datetime-local"
+                                    id="edit-waktu-flashsale"
+                                    class="w-full px-4 py-3 bg-white border border-rose-200 rounded-xl focus:border-rose-500 outline-none font-bold text-slate-700 text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex gap-3">
+                        <button type="button" onclick="closeEditModal()"
+                            class="flex-1 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold text-[13px] hover:bg-slate-200 transition-all">Batal</button>
+                        <button type="submit"
+                            class="flex-1 py-3.5 bg-blue-600 text-white rounded-xl font-bold text-[13px] hover:bg-blue-700 shadow-lg shadow-blue-600/30 transition-all"><i
+                                class="fas fa-save"></i> Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sidebar (Desktop & Mobile) -->
+        <aside id="adminSidebar"
+            class="w-64 bg-[#0f172a] text-white flex-col fixed md:relative z-40 h-full transition-transform duration-300 -translate-x-full md:translate-x-0 flex shrink-0">
+            <div
+                class="p-6 flex items-center justify-between border-b border-slate-800/50">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-md">
+                        <i class="fas fa-shield-alt text-lg"></i>
+                    </div>
+                    <div class="leading-tight">
+                        <h1 class="font-black text-xl tracking-tight">Admin<span
+                                class="text-blue-500">Panel</span></h1>
+                    </div>
+                </div>
+                <button onclick="toggleSidebar()"
+                    class="md:hidden text-slate-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+                <div
+                    class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 mt-2 px-2">Menu
+                    Utama</div>
+                <button type="button" id="menu-overview"
+                    onclick="switchMenu('overview')"
+                    class="w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl font-bold transition-all shadow-md shadow-blue-600/20">
+                    <i class="fas fa-chart-pie w-5 text-center"></i> Overview
+                </button>
+                <button type="button" id="menu-products"
+                    onclick="switchMenu('products')"
+                    class="w-full text-left flex items-center gap-3 text-slate-400 hover:text-white hover:bg-slate-800 px-4 py-3 rounded-xl font-bold transition-all">
+                    <i class="fas fa-box w-5 text-center"></i> Kelola Produk
+                </button>
+                <button type="button" id="menu-orders"
+                    onclick="switchMenu('orders')"
+                    class="w-full text-left flex items-center gap-3 text-slate-400 hover:text-white hover:bg-slate-800 px-4 py-3 rounded-xl font-bold transition-all">
+                    <i class="fas fa-shopping-cart w-5 text-center"></i> Pesanan
+                    WA
+                </button>
+                <button type="button" id="menu-settings"
+                    onclick="switchMenu('settings')"
+                    class="w-full text-left flex items-center gap-3 text-slate-400 hover:text-white hover:bg-slate-800 px-4 py-3 rounded-xl font-bold transition-all">
+                    <i class="fas fa-cogs w-5 text-center"></i> Pengaturan API
+                </button>
+            </nav>
+
+            <div class="p-4 border-t border-slate-800/50">
+                <a href="index.html"
+                    class="flex items-center gap-3 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 px-4 py-3 rounded-xl font-bold transition-all">
+                    <i class="fas fa-sign-out-alt w-5 text-center"></i> Ke Toko
+                    Utama
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden">
+
+            <!-- Header Menu -->
+            <header
+                class="bg-white border-b border-slate-200 h-16 flex justify-between items-center px-4 sm:px-8 z-10 shrink-0">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()"
+                        class="md:hidden text-slate-500 hover:text-blue-600 text-xl">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2 class="text-lg font-black text-slate-800">Dashboard</h2>
+                </div>
+                <div
+                    class="flex items-center gap-3 border border-slate-200 px-3 py-1.5 rounded-full">
+                    <div
+                        class="w-7 h-7 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-600 pr-1">Halo,
+                        Owner</span>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="p-4 sm:p-8 flex-1 overflow-y-auto">
+
+                <!-- SECTION: OVERVIEW -->
+                <div id="section-overview" class="block">
+                    <!-- Quick Stats -->
+                    <div
+                        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Stat Card 1 -->
+                        <div
+                            class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-5">
+                            <div
+                                class="w-14 h-14 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center text-2xl">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div>
+                                <p
+                                    class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Saldo
+                                    Tersedia</p>
+                                <h3 id="saldo-tersedia"
+                                    aria-label="Memuat saldo"
+                                    class="text-2xl font-black text-slate-800 flex items-center gap-2">
+                                    <span class="sr-only">Memuat Saldo</span>
+                                    <i
+                                        class="fas fa-circle-notch fa-spin text-sm text-slate-300"></i></h3>
+                            </div>
+                        </div>
+                        <!-- Stat Card 2 -->
+                        <div
+                            class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-5">
+                            <div
+                                class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <div>
+                                <p
+                                    class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Produk
+                                    Aktif</p>
+                                <h3 id="produk-aktif"
+                                    aria-label="Memuat produk"
+                                    class="text-2xl font-black text-slate-800 flex items-center gap-2">
+                                    <span class="sr-only">Memuat Produk</span>
+                                    <i
+                                        class="fas fa-circle-notch fa-spin text-sm text-slate-300"></i>
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info Box Area -->
+                    <div
+                        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 relative overflow-hidden">
+                        <div
+                            class="absolute -right-10 -top-10 text-slate-50 opacity-50"><i
+                                class="fas fa-rocket text-9xl"></i></div>
+                        <h2
+                            class="text-lg font-black text-slate-800 mb-3 relative z-10">Selamat
+                            Datang di Panel Admin</h2>
+                        <p
+                            class="text-slate-500 text-sm font-medium leading-relaxed max-w-3xl relative z-10">
+                            Ini adalah template awal untuk halaman Admin Anda.
+                            Ke
+                            depannya, halaman ini bisa dihubungkan ke API untuk
+                            melihat sisa saldo di Warung Rebahan, menyetel
+                            persentase profit produk secara masal, hingga
+                            memantau
+                            riwayat pesanan (webhook).
+                        </p>
+                        <button onclick="seedDatabase()"
+                            class="mt-6 px-6 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-slate-800 transition-colors relative z-10">Siapkan
+                            Database</button>
+                    </div>
+                </div>
+
+                <!-- SECTION: KELOLA PRODUK -->
+                <div id="section-products" class="hidden">
+                    <div
+                        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 flex flex-col h-full">
+                        <div
+                            class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+                            <div>
+                                <h2
+                                    class="text-lg font-black text-slate-800">Kelola
+                                    Produk & Harga</h2>
+                                <p
+                                    class="text-slate-500 text-sm font-medium">Atur
+                                    harga jual kustom dan flash sale untuk
+                                    setiap varian.</p>
+                            </div>
+                            <div class="relative w-full md:w-64 shrink-0">
+                                <i
+                                    class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" id="searchAdminProduct"
+                                    onkeyup="filterAdminProducts()"
+                                    placeholder="Cari produk / varian..."
+                                    class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:border-blue-500 outline-none">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table
+                                class="w-full text-left border-collapse min-w-[600px]">
+                                <thead>
+                                    <tr
+                                        class="border-b-2 border-slate-200 text-[10px] uppercase tracking-widest text-slate-400">
+                                        <th class="pb-3 font-black">Produk &
+                                            Varian</th>
+                                        <th class="pb-3 font-black">Harga
+                                            Modal</th>
+                                        <th class="pb-3 font-black">Harga
+                                            Jual</th>
+                                        <th class="pb-3 font-black">Flash
+                                            Sale</th>
+                                        <th
+                                            class="pb-3 font-black text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-product-list" class="text-sm">
+                                    <!-- Tabel Produk diisi lewat JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION: PESANAN WA -->
+                <div id="section-orders" class="hidden">
+                    <div
+                        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+                        <h2
+                            class="text-lg font-black text-slate-800 mb-3">Pesanan
+                            WhatsApp</h2>
+                        <p class="text-slate-500 text-sm font-medium">Di masa
+                            mendatang, histori konfirmasi pesanan dari pelanggan
+                            akan tampil di sini jika Anda menghubungkan dengan
+                            bot WhatsApp (opsional).</p>
+                    </div>
+                </div>
+
+                <!-- SECTION: PENGATURAN API -->
+                <div id="section-settings" class="hidden">
+                    <div
+                        class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+                        <h2
+                            class="text-lg font-black text-slate-800 mb-3">Pengaturan
+                            API</h2>
+                        <p
+                            class="text-slate-500 text-sm font-medium mb-6">Konfigurasi
+                            kunci integrasi Warung Rebahan Anda.</p>
+
+                        <div class="max-w-md">
+                            <label for="api-key-input"
+                                class="block text-xs font-black text-slate-700 mb-2">API
+                                KEY AKTIF</label>
+                            <div class="relative">
+                                <input type="password"
+                                    id="api-key-input"
+                                    value="************************"
+                                    class="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-medium text-slate-500"
+                                    disabled readonly>
+                                <i
+                                    class="fas fa-lock absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            </div>
+                            <p
+                                class="text-[10px] font-bold text-emerald-500 mt-2"><i
+                                    class="fas fa-check-circle"></i>
+                                Terkoneksi</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Script Logika Login -->
+        <script>
+            // Cek apakah admin sudah login sebelumnya (Sesi Tersimpan)
+            if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+                document.getElementById('loginOverlay').classList.add('hidden');
+                fetchDashboardData().catch(console.error);
+            }
+
+            async function prosesLogin(e) {
+                e.preventDefault(); // Mencegah halaman refresh saat form disubmit
+                const user = document.getElementById('inputUser').value;
+                const pass = document.getElementById('inputPass').value;
+
+                try {
+                    const res = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user, pass })
+                    });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        sessionStorage.setItem('adminLoggedIn', 'true'); // Simpan sesi
+                        document.getElementById('loginOverlay').classList.add('hidden'); // Sembunyikan form login
+                        fetchDashboardData().catch(console.error); // Muat data dashboard
+                    } else {
+                        document.getElementById('pesanError').classList.remove('hidden'); // Tampilkan error
+                    }
+                } catch (error) {
+                    console.error("Login gagal:", error);
+                }
+            }
+
+            // Navigasi Tab / Sidebar Menu
+            function switchMenu(menuId) {
+                // Daftar semua section yang ada
+                const sections = ['overview', 'products', 'orders', 'settings'];
+                
+                sections.forEach(id => {
+                    // Sembunyikan section
+                    document.getElementById('section-' + id).classList.add('hidden');
+                    document.getElementById('section-' + id).classList.remove('block');
+                    
+                    // Reset style tombol sidebar
+                    document.getElementById('menu-' + id).className = "w-full text-left flex items-center gap-3 text-slate-400 hover:text-white hover:bg-slate-800 px-4 py-3 rounded-xl font-bold transition-all";
+                });
+
+                // Tampilkan section yang dipilih
+                document.getElementById('section-' + menuId).classList.remove('hidden');
+                document.getElementById('section-' + menuId).classList.add('block');
+                
+                // Set style tombol menjadi aktif
+                document.getElementById('menu-' + menuId).className = "w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl font-bold transition-all shadow-md shadow-blue-600/20";
+
+                // Tutup sidebar otomatis di mode HP setelah menu dipilih
+                if (window.innerWidth < 768) {
+                    document.getElementById('adminSidebar').classList.add('-translate-x-full');
+                }
+            }
+
+            function toggleSidebar() {
+                document.getElementById('adminSidebar').classList.toggle('-translate-x-full');
+            }
+
+            // Fungsi Toast
+            function showToast(msg) {
+                const toast = document.getElementById('toastSuccess');
+                document.getElementById('toastMsg').textContent = msg;
+                toast.classList.remove('translate-x-[150%]', 'opacity-0');
+                setTimeout(() => toast.classList.add('translate-x-[150%]', 'opacity-0'), 3000);
+            }
+
+            // Mengambil Data Saldo dan Produk dari API
+            async function fetchDashboardData() {
+                try {
+                    // Fetch Saldo Admin (Dari file api/balance.js)
+                    const resBalance = await fetch('/api/balance');
+                    const dataBalance = await resBalance.json();
+                    
+                    // Fetch Katalog Produk (Dari file api/products.js)
+                    const resProducts = await fetch('/api/products');
+                    const dataProducts = await resProducts.json();
+
+                    if (dataBalance.success) document.getElementById('saldo-tersedia').innerHTML = `Rp ${new Intl.NumberFormat('id-ID').format(dataBalance.data.balance)}`;
+                    if (dataProducts.success) {
+                        document.getElementById('produk-aktif').innerHTML = `${dataProducts.data.length} <span class="text-xs text-slate-400 font-bold ml-1">Items</span>`;
+                        
+                        // Simpan dan jalankan tabel produk
+                        adminGlobalProducts = dataProducts.data;
+                        renderAdminProducts();
+                    }
+                } catch (error) {
+                    console.error("Gagal menarik data:", error);
+                }
+            }
+
+            // ----------------------------------------------------
+            // LOGIKA KELOLA PRODUK (Admin Panel)
+            // ----------------------------------------------------
+            let adminGlobalProducts = [];
+
+            function renderAdminProducts() {
+                const tbody = document.getElementById('admin-product-list');
+                const keyword = document.getElementById('searchAdminProduct')?.value.toLowerCase() || "";
+                tbody.innerHTML = '';
+                
+                // Ambil setelan harga yang pernah disimpan
+                const customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+
+                adminGlobalProducts.forEach((produk, pIdx) => {
+                    if (!produk.variants) return;
+                    
+                    produk.variants.forEach((varian, vIdx) => {
+                        const searchStr = (produk.name + " " + varian.name).toLowerCase();
+                        if (keyword && !searchStr.includes(keyword)) return;
+
+                        const key = produk.name + "|" + varian.name + "|" + varian.price;
+                        const setting = customSettings[key];
+                        
+                        // Hitung harga bawaan simulasi (Modal + 5rb) jika belum ada kustom
+                        let hargaModal = varian.price;
+                        let hargaJualDef = hargaModal + 5000; 
+                        let activeJual = setting ? setting.hargaJual : hargaJualDef;
+                        let activeIsFlash = setting ? setting.isFlashSale : false;
+                        let activeFlashPrice = setting ? setting.flashSalePrice : 0;
+                        let activeFlashEnd = setting ? setting.flashSaleEnd : null;
+                        
+                        let flashStatusText = `<span class="text-slate-300 text-xs font-bold">-</span>`;
+                        if (activeIsFlash) {
+                            const isNotExpired = !activeFlashEnd || activeFlashEnd > Date.now();
+                            if (isNotExpired) {
+                                flashStatusText = `<span class="bg-rose-100 text-rose-600 text-[10px] px-2 py-1.5 rounded-lg font-black flex flex-col gap-0.5 w-max">
+                                                    <span><i class="fas fa-bolt"></i> Rp ${new Intl.NumberFormat('id-ID').format(activeFlashPrice)}</span>
+                                                    ${activeFlashEnd ? `<span class="text-[9px] opacity-80 mt-0.5 font-bold">Berakhir: ${new Date(activeFlashEnd).toLocaleString('id-ID', {day: 'numeric', month: 'short', hour:'2-digit', minute:'2-digit'})}</span>` : ''}
+                                                </span>`;
+                            } else {
+                                flashStatusText = `<span class="bg-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded font-black w-max"><i class="fas fa-history"></i> Kedaluwarsa</span>`;
+                            }
+                        }
+
+                        const row = document.createElement('tr');
+                        row.className = "border-b border-slate-100 hover:bg-slate-50 transition-colors";
+                        row.innerHTML = `
+                            <td class="py-3 pr-4">
+                                <div class="font-black text-slate-800">${produk.name}</div>
+                                <div class="text-xs font-bold text-slate-500">${varian.name}</div>
+                            </td>
+                            <td class="py-3 pr-4 font-bold text-slate-500">Rp ${new Intl.NumberFormat('id-ID').format(hargaModal)}</td>
+                            <td class="py-3 pr-4 font-black text-blue-600">Rp ${new Intl.NumberFormat('id-ID').format(activeJual)}</td>
+                            <td class="py-3 pr-4">
+                                ${flashStatusText}
+                            </td>
+                            <td class="py-3 text-right">
+                                <button onclick="openEditProductModal(${pIdx}, ${vIdx})" class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors shadow-sm inline-flex items-center justify-center">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                });
+            }
+
+            function filterAdminProducts() { renderAdminProducts(); }
+
+            function openEditProductModal(pIdx, vIdx) {
+                const produk = adminGlobalProducts[pIdx];
+                const varian = produk.variants[vIdx];
+                const key = produk.name + "|" + varian.name + "|" + varian.price;
+                
+                const customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+                const setting = customSettings[key];
+
+                document.getElementById('edit-product-name').textContent = `${produk.name} - ${varian.name}`;
+                document.getElementById('edit-prod-idx').value = pIdx;
+                document.getElementById('edit-var-idx').value = vIdx;
+                
+                document.getElementById('edit-harga-jual').value = setting ? setting.hargaJual : (varian.price + 5000);
+                document.getElementById('edit-is-flashsale').checked = setting ? setting.isFlashSale : false;
+                document.getElementById('edit-harga-flashsale').value = setting ? (setting.flashSalePrice || '') : '';
+                
+                // Format datetime-local timezone (Menyesuaikan zona waktu lokal komputer)
+                let tzoffset = (new Date()).getTimezoneOffset() * 60000; 
+                document.getElementById('edit-waktu-flashsale').value = setting && setting.flashSaleEnd ? new Date(setting.flashSaleEnd - tzoffset).toISOString().slice(0, 16) : '';
+                
+                toggleFlashSaleInput();
+                document.getElementById('editProductModal').classList.remove('hidden');
+            }
+
+            function toggleFlashSaleInput() {
+                const isChecked = document.getElementById('edit-is-flashsale').checked;
+                const container = document.getElementById('flashsale-input-container');
+                if(isChecked) {
+                    container.classList.remove('hidden');
+                    document.getElementById('edit-harga-flashsale').setAttribute('required', 'true');
+                } else {
+                    container.classList.add('hidden');
+                    document.getElementById('edit-harga-flashsale').removeAttribute('required');
+                }
+            }
+
+            function closeEditModal() { document.getElementById('editProductModal').classList.add('hidden'); }
+
+            function saveProductEdit(e) {
+                e.preventDefault();
+                const pIdx = document.getElementById('edit-prod-idx').value;
+                const vIdx = document.getElementById('edit-var-idx').value;
+                const hargaJual = Number.parseInt(document.getElementById('edit-harga-jual').value);
+                const isFlashSale = document.getElementById('edit-is-flashsale').checked;
+                const flashSalePrice = Number.parseInt(document.getElementById('edit-harga-flashsale').value);
+                const flashEndInput = document.getElementById('edit-waktu-flashsale').value;
+                const flashSaleEnd = isFlashSale && flashEndInput ? new Date(flashEndInput).getTime() : null;
+
+                const varian = adminGlobalProducts[pIdx].variants[vIdx];
+                const key = adminGlobalProducts[pIdx].name + "|" + varian.name + "|" + varian.price;
+
+                let customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+                
+                customSettings[key] = {
+                    hargaJual: hargaJual,
+                    isFlashSale: isFlashSale,
+                    flashSalePrice: isFlashSale ? flashSalePrice : null,
+                    flashSaleEnd: flashSaleEnd
+                };
+
+                localStorage.setItem('tokoSamCustomPrices', JSON.stringify(customSettings));
+                
+                closeEditModal();
+                renderAdminProducts();
+                showToast("Harga berhasil diperbarui!");
+            }
+
+            // ----------------------------------------------------
+            // DATABASE SEEDER (Harga sesuai Tabel yang diberikan)
+            // ----------------------------------------------------
+            function getHargaTable(produk, varian) {
+                const p = produk.name.toLowerCase();
+                const v = varian.name.toLowerCase();
+                const d = (varian.duration || "").toLowerCase();
+                const t = (varian.type || "").toLowerCase();
+                const teks = p + " " + v + " " + d + " " + t; // Teks sangat lengkap untuk dicek
+                const modal = varian.price; // Menambahkan harga modal untuk referensi silang absolut
+                
+                // Aturan Harga dengan Struktur Array (Refactoring Cognitive Complexity)
+                const rules = [
+                    { key: "netflix", checks: [
+                        { k: "anti limit", p: 33000 }, { k: "legal", p: 49500 }
+                    ]},
+                    { key: "spotify", fallback: 27500 },
+                    { key: "youtube", checks: [
+                        { k: "private", p: 33000 }, { k: "90", p: 33000 },
+                        { k: "invite", p: 11000 }, { k: "30", p: 11000 }
+                    ]},
+                    { key: "vidio", checks: [
+                        { k: "all", p: 49500 }, { k: "device", p: 49500 },
+                        { k: "mobile", p: 38500 }, { k: "hp", p: 38500 },
+                        { k: "tv", p: 16500 }, { k: "350", p: 16500 }, { k: "only", p: 16500 }
+                    ]},
+                    { key: "disney", checks: [
+                        { k: "jaspay", k2: "365", p: 286000 }, { k: "jaspay", k2: "tahun", p: 286000 },
+                        { k: "3u", k2: "350", p: 154000 },
+                        { k: "jaspay", k2: "30", p: 126500 },
+                        { k: "3u", k2: "30", p: 55000 }
+                    ]},
+                    { key: "prime", checks: [
+                        { k: "garansi 20", p: 22000 },
+                        { k: "no garansi", p: 16500 }, { k: "tanpa", p: 16500 }
+                    ]},
+                    { key: "bstation", checks: [
+                        { k: "350", p: 27500 }, { k: "tahun", p: 27500 },
+                        { k: "90", p: 13200 }, { k: "3 bulan", p: 13200 }
+                    ]},
+                    { key: "viu", checks: [
+                        { k: "9999", p: 16500 }, { k: "lifetime", p: 16500 }, { m: 5000, p: 16500 },
+                        { k: "300", p: 5500 }, { m: 1000, p: 5500 }
+                    ]},
+                    { key: "wetv", checks: [
+                        { k: "private", p: 38500 }, { m: 23000, p: 38500 },
+                        { k: "sharing", p: 19800 }, { m: 10000, p: 19800 }
+                    ]},
+                    { key: ["crunchyroll", "youku", "drakor", "iqiyi"], fallback: 16500 },
+                    { key: "apple music", fallback: 11000 },
+                    { key: "chatgpt", checks: [ { k: "invite", p: 16500 } ] },
+                    { key: "codex", checks: [
+                        { k: "individual garansi", p: 38500 }, { m: 18000, p: 38500 },
+                        { k: "invite garansi", p: 27500 }, { m: 13000, p: 27500 },
+                        { k: "go", p: 22000 }, { k: "90", p: 22000 }, { k: "3 bulan", p: 22000 }, { m: 9000, p: 22000 },
+                        { k: "individual", p: 22000 }, { k: "30", p: 22000 }, { m: 10000, p: 22000 }
+                    ]},
+                    { key: "claude", checks: [
+                        { k: "private", k2: "garansi", p: 264000 }, { m: 190000, p: 264000 },
+                        { k: "private", p: 176000 }, { m: 125000, p: 176000 },
+                        { k: "sharing", p: 60500 }, { m: 35000, p: 60500 }
+                    ]},
+                    { key: "gemini", checks: [
+                        { k: "350", p: 55000 }, { m: 25000, p: 55000 },
+                        { k: "120", p: 27500 }, { m: 12000, p: 27500 }
+                    ]},
+                    { key: "grok", checks: [
+                        { k: "garansi", p: 38500 }, { m: 20000, p: 38500 },
+                        { k: "private", p: 33000 }, { k: "20", p: 33000 }, { m: 14000, p: 33000 },
+                        { k: "sharing", p: 16500 }, { k: "14", p: 16500 }, { m: 5000, p: 16500 }
+                    ]},
+                    { key: "devin", fallback: 16500 },
+                    { key: "canva", checks: [
+                        { k: "edu", p: 16500 }, { k: "lifetime", p: 16500 }, { k: "365", p: 16500 },
+                        { k: "350", p: 16500 },
+                        { k: "head", p: 11000 }, { m: 4000, p: 11000 },
+                        { k: "30", p: 5500 }
+                    ]},
+                    { key: "capcut", checks: [
+                        { k: "auto renew", p: 16500 }, { k: "35", p: 16500 }, { m: 3200, p: 16500 },
+                        { defaultPrice: 11000 }
+                    ]},
+                    { key: ["alight", "picsart"], fallback: 11000 },
+                    { key: ["wink", "meitu"], checks: [
+                        { k: "bundle", p: 16500 }, { k: "plus", p: 16500 }, { m: 7000, p: 16500 },
+                        { defaultPrice: 11000 }
+                    ]},
+                    { key: "adobe", checks: [
+                        { k: "120", p: 93500 }, { k: "garansi", p: 93500 }, { m: 50000, p: 93500 },
+                        { k: "90", p: 66000 }, { k: "pro", p: 66000 }, { m: 30000, p: 66000 }
+                    ]},
+                    { key: "office", checks: [
+                        { k: "custom user garansi", p: 148500 }, { m: 80000, p: 148500 },
+                        { k: "garansi 180", p: 132000 }, { k: "180", p: 132000 }, { m: 70000, p: 132000 },
+                        { k: "custom username", p: 88000 }, { m: 40000, p: 88000 },
+                        { k: "no garansi", p: 71500 }, { k: "tanpa", p: 71500 }, { m: 30000, p: 71500 }
+                    ]},
+                    { key: "windows", checks: [
+                        { k: "350", p: 126500 }, { k: "garansi", p: 126500 }, { m: 70000, p: 126500 },
+                        { k: "no garansi", p: 55000 }, { m: 20000, p: 55000 }
+                    ]},
+                    { key: "github", checks: [
+                        { k: "copilot", p: 82500 }, { k: "30", p: 82500 }, { m: 40000, p: 82500 },
+                        { k: "student", p: 71500 }, { k: "350", p: 71500 }, { m: 35000, p: 71500 }
+                    ]},
+                    { key: "pdf", checks: [
+                        { k: "private", p: 33000 }, { k: "30", p: 33000 }, { m: 15000, p: 33000 },
+                        { k: "sharing", p: 27500 }, { k: "300", p: 27500 }, { m: 10000, p: 27500 }
+                    ]},
+                    { key: "zoom", fallback: 16500 },
+                    { key: "camscanner", fallback: 5500 },
+                    { key: "getcontact", fallback: 13200 },
+                    { key: "surfshark", fallback: 44000 },
+                    { key: ["hma", "express"], fallback: 13200 }
+                ];
+    
+                for (const rule of rules) {
+                    const keys = Array.isArray(rule.key) ? rule.key : [rule.key];
+                    if (keys.some(k => p.includes(k))) {
+                        if (rule.fallback !== undefined) return rule.fallback;
+                        for (const check of rule.checks) {
+                            if (check.defaultPrice !== undefined) return check.defaultPrice;
+                            
+                            let match = false;
+                            if (check.k && check.k2) {
+                                match = teks.includes(check.k) && teks.includes(check.k2);
+                            } else if (check.k) {
+                                match = teks.includes(check.k);
+                            } else if (check.m) {
+                                match = modal === check.m;
+                            }
+                            
+                            if (match) return check.p;
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            function seedDatabase() {
+                if (!adminGlobalProducts || adminGlobalProducts.length === 0) {
+                    showToast("Gagal. Tunggu data produk termuat!");
+                    return;
+                }
+                let customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+                let updatedCount = 0;
+
+                adminGlobalProducts.forEach((produk) => {
+                    if (!produk.variants) return;
+                    produk.variants.forEach((varian) => {
+                        const key = produk.name + "|" + varian.name + "|" + varian.price;
+                        const matchHarga = getHargaTable(produk, varian);
+                        
+                        if (matchHarga !== null) {
+                            if (!customSettings[key]) customSettings[key] = { isFlashSale: false };
+                            customSettings[key].hargaJual = matchHarga;
+                            updatedCount++;
+                        }
+                    });
+                });
+                localStorage.setItem('tokoSamCustomPrices', JSON.stringify(customSettings));
+                renderAdminProducts();
+                showToast(`${updatedCount} Data Harga Berhasil Disiapkan!`);
+            }
+        </script>
+    </body>
+</html>

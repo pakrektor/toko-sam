@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Toko Digital Otomatis</title>
+        <!-- Tailwind CSS & Google Fonts -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800;900&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f4f7f9; }
+        /* Kustomisasi scrollbar agar cantik */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        /* Animasi Modal */
+        .modal-masuk { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    </head>
+    <body class="text-slate-800">
+
+        <!-- Navbar Mirip Warung Rebahan -->
+        <nav
+            class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo Area -->
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-400 rounded-xl flex items-center justify-center text-white shadow-md">
+                            <i class="fas fa-store text-xl"></i>
+                        </div>
+                        <div class="leading-tight">
+                            <h1
+                                class="font-black text-xl text-slate-800 tracking-tight">Toko
+                                <span class="text-blue-600">Sam</span></h1>
+                            <p
+                                class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">All
+                                Your Digital Needs</p>
+                        </div>
+                    </div>
+                    <!-- Nav Links (Desktop) -->
+                    <div class="hidden md:flex space-x-8">
+                        <a href="#"
+                            class="text-sm font-black text-blue-600 flex items-center gap-2 border-b-2 border-blue-600 pt-1"><i
+                                class="fas fa-box"></i> Produk</a>
+                        <button type="button"
+                            onclick="alert('Tata Cara Order:\n1. Pilih produk yang Anda inginkan.\n2. Lakukan konfirmasi pesanan dan pembayaran via WhatsApp.\n3. Pesanan/Akun akan langsung dikirimkan melalui pesan WhatsApp Anda.')"
+                            class="text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-2 pt-1"><i
+                                class="fas fa-info-circle"></i> Cara
+                            Order</button>
+                    </div>
+                    <!-- Button -->
+                    <div>
+                        <a href="admin.html"
+                            class="bg-slate-900 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md hover:bg-slate-800 transition-colors flex items-center gap-2">
+                            <i class="fas fa-th-large"></i> Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- Section Title -->
+            <div
+                class="flex items-center gap-4 mb-8 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                <div
+                    class="w-12 h-12 bg-[#f0f5ff] rounded-xl flex items-center justify-center text-blue-600">
+                    <i class="fas fa-grip-horizontal text-2xl"></i>
+                </div>
+                <div>
+                    <h2
+                        class="text-xl font-black text-slate-800 uppercase tracking-tight">Katalog
+                        Produk</h2>
+                    <p
+                        class="text-xs text-slate-400 font-bold uppercase tracking-wider mt-0.5">Pilih
+                        Produk Premium Yang Anda Inginkan</p>
+                </div>
+            </div>
+
+            <!-- Filter & Search Section -->
+            <div id="filter-container"
+                class="mb-6 hidden flex flex-col sm:flex-row flex-wrap gap-4">
+                <div class="relative flex-1">
+                    <i
+                        class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchInput"
+                        placeholder="Cari nama produk..."
+                        class="w-full pl-11 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none text-sm font-medium transition-all shadow-sm">
+                </div>
+                <div class="relative w-full sm:w-64">
+                    <i
+                        class="fas fa-filter absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <select id="categoryFilter"
+                        class="w-full pl-11 pr-10 py-3.5 bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-sm font-bold text-slate-600 transition-all shadow-sm appearance-none cursor-pointer">
+                        <option value="all">Semua Kategori</option>
+                    </select>
+                    <i
+                        class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                </div>
+                <!-- Sort Filter -->
+                <div class="relative w-full sm:w-56">
+                    <i
+                        class="fas fa-sort absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <select id="sortFilter"
+                        class="w-full pl-11 pr-10 py-3.5 bg-white border border-slate-200 rounded-xl focus:border-blue-500 outline-none text-sm font-bold text-slate-600 transition-all shadow-sm appearance-none cursor-pointer">
+                        <option value="default">Urutan Default</option>
+                        <option value="tersedia">Stok Tersedia</option>
+                        <option value="paling_laris">Paling Laris</option>
+                        <option value="termurah">Harga Termurah</option>
+                        <option value="termahal">Harga Termahal</option>
+                    </select>
+                    <i
+                        class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="text-center py-20">
+                <i
+                    class="fas fa-circle-notch fa-spin text-5xl text-blue-600 mb-4"></i>
+                <p class="text-slate-500 font-bold tracking-wide">Memuat Katalog
+                    Produk...</p>
+            </div>
+
+            <!-- Wadah Grid Produk -->
+            <!-- Menyesuaikan layout mirip screenshot: 5 kolom di layar besar -->
+            <div id="katalog-produk"
+                class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 hidden">
+                <!-- JavaScript akan mengisi bagian ini -->
+            </div>
+
+        </main>
+
+        <!-- MODAL CHECKOUT BERGAYA SPLIT LAYOUT -->
+        <div id="checkoutModal"
+            class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 sm:p-6">
+            <!-- Backdrop -->
+            <button type="button"
+                class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity w-full cursor-default"
+                onclick="tutupModal()"
+                aria-label="Tutup modal checkout"></button>
+
+            <!-- Modal Content -->
+            <div
+                class="relative bg-white w-full max-w-4xl max-h-[95vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row modal-masuk">
+
+                <!-- Header Mobile (Only visible on small screens) -->
+                <div
+                    class="md:hidden bg-white border-b border-slate-200 p-4 flex justify-between items-center z-10">
+                    <h2
+                        class="font-black text-slate-800 flex items-center gap-2"><i
+                            class="fas fa-lock text-blue-600"></i> Secure
+                        Checkout</h2>
+                    <button onclick="tutupModal()"
+                        class="text-slate-400 hover:text-rose-500 w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full"><i
+                            class="fas fa-times"></i></button>
+                </div>
+
+                <!-- Bagian Kiri: Info Produk -->
+                <div
+                    class="w-full md:w-1/2 p-6 md:p-8 overflow-y-auto bg-white flex flex-col border-r border-slate-100 relative">
+                    <button onclick="tutupModal()"
+                        class="hidden md:inline-flex text-slate-500 hover:text-slate-800 text-sm font-black items-center gap-2 mb-8 transition-colors w-max">
+                        <i class="fas fa-arrow-left"></i> Secure Checkout
+                    </button>
+
+                    <div class="flex gap-5 items-center mb-8">
+                        <!-- Icon Kotak Gradient -->
+                        <div
+                            class="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#0f172a] via-[#1e3a8a] to-[#3b82f6] flex items-center justify-center text-white shadow-lg shrink-0 relative overflow-hidden">
+                            <div
+                                class="absolute -bottom-5 -right-5 w-16 h-16 bg-blue-400/30 blur-xl rounded-full"></div>
+                            <i
+                                class="fas fa-gem text-4xl relative z-10 drop-shadow-md"></i>
+                        </div>
+                        <div>
+                            <h2 id="modal-nama-produk"
+                                class="text-2xl font-black text-slate-800 leading-tight">Nama
+                                Produk</h2>
+                            <p id="modal-harga-display"
+                                class="text-3xl font-black text-blue-600 mt-1 tracking-tight">Rp
+                                0</p>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="border-b border-slate-200 mb-5 flex gap-8">
+                        <button id="btn-tab-deskripsi"
+                            onclick="switchTab('deskripsi')"
+                            class="pb-3 border-b-2 border-blue-600 text-blue-600 font-black text-[11px] uppercase tracking-widest transition-all">Deskripsi</button>
+                        <button id="btn-tab-snk" onclick="switchTab('snk')"
+                            class="pb-3 border-b-2 border-transparent text-slate-400 font-bold text-[11px] uppercase tracking-widest hover:text-slate-600 transition-all">Syarat
+                            & Ketentuan <span
+                                class="w-1.5 h-1.5 bg-blue-500 rounded-full inline-block ml-1"></span></button>
+                    </div>
+
+                    <p id="modal-deskripsi"
+                        class="text-[13px] text-slate-500 leading-relaxed font-medium pb-6">
+                        Pilih varian di sebelah kanan untuk melihat detail
+                        harga. Produk ini adalah layanan premium resmi yang
+                        menjamin kenyamanan Anda.
+                    </p>
+                    <div id="modal-snk"
+                        class="hidden text-[13px] text-slate-500 leading-relaxed font-medium pb-6">
+                        Pilih varian/paket untuk melihat Syarat dan Ketentuan.
+                    </div>
+
+                    <div class="mt-auto hidden md:block pt-4">
+                        <div
+                            class="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                            <i
+                                class="fas fa-shield-alt text-emerald-500 text-sm"></i>
+                            Transaksi Aman & Terpercaya
+                        </div>
+                        <div id="modal-info-harga"
+                            class="text-xs font-medium text-slate-500 mt-1.5">
+                            Harga mulai dari: <span
+                                class="font-bold text-slate-700">Rp 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bagian Kanan: Form Checkout -->
+                <div
+                    class="w-full md:w-1/2 p-6 md:p-8 overflow-y-auto bg-[#f8fafc]">
+
+                    <div
+                        class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                        <h3
+                            class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5 border-b border-slate-100 pb-3">Detail
+                            Pemesanan</h3>
+
+                        <form id="orderForm" class="space-y-5">
+                            <!-- Grup Pilihan Paket -->
+                            <div class="space-y-3">
+                                <!-- Dropdown Varian -->
+                                <div>
+                                    <label for="input-varian"
+                                        class="block text-xs font-black text-slate-700 mb-2">PILIH
+                                        VARIAN / PAKET</label>
+                                    <div class="relative">
+                                        <select id="input-varian"
+                                            onchange="updateHargaModal()"
+                                            class="w-full pl-4 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none text-sm font-bold text-slate-800 transition-all appearance-none cursor-pointer">
+                                            <option value disabled selected>--
+                                                Memuat Varian --</option>
+                                        </select>
+                                        <i
+                                            class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Info Detail Ekstra (Durasi, Tipe, Garansi) -->
+                                <div id="modal-detail-varian"
+                                    class="grid grid-cols-3 gap-2 hidden">
+                                    <div
+                                        class="bg-blue-50/50 border border-blue-100 p-2.5 rounded-xl text-center">
+                                        <p
+                                            class="text-[9px] font-black text-slate-400 uppercase">Durasi</p>
+                                        <p id="detail-durasi"
+                                            class="text-xs font-bold text-blue-700 mt-0.5 line-clamp-1">-</p>
+                                    </div>
+                                    <div
+                                        class="bg-emerald-50/50 border border-emerald-100 p-2.5 rounded-xl text-center">
+                                        <p
+                                            class="text-[9px] font-black text-slate-400 uppercase">Tipe
+                                            Akun</p>
+                                        <p id="detail-tipe"
+                                            class="text-xs font-bold text-emerald-700 mt-0.5 line-clamp-1">-</p>
+                                    </div>
+                                    <div
+                                        class="bg-amber-50/50 border border-amber-100 p-2.5 rounded-xl text-center">
+                                        <p
+                                            class="text-[9px] font-black text-slate-400 uppercase">Garansi</p>
+                                        <p id="detail-garansi"
+                                            class="text-xs font-bold text-amber-700 mt-0.5 line-clamp-1">-</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Data Pembeli -->
+                            <div class="grid grid-cols-1 gap-5 pt-2">
+                                <div>
+                                    <label for="input-nama"
+                                        class="block text-xs font-black text-slate-700 mb-2">NAMA
+                                        LENGKAP</label>
+                                    <input type="text" id="input-nama"
+                                        class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white outline-none text-sm font-medium transition-all"
+                                        placeholder="Masukkan nama pemesan"
+                                        required>
+                                </div>
+                                <div>
+                                    <label for="input-catatan"
+                                        class="block text-xs font-black text-slate-700 mb-2">CATATAN
+                                        (EMAIL / NO HP)</label>
+                                    <input type="text" id="input-catatan"
+                                        class="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-blue-500 focus:bg-white outline-none text-sm font-medium transition-all"
+                                        placeholder="Email untuk keperluan akun...">
+                                </div>
+                            </div>
+
+                            <!-- Rincian Harga -->
+                            <div
+                                class="bg-blue-50/50 rounded-xl p-4 border border-blue-100 mt-6">
+                                <div
+                                    class="flex justify-between items-center mb-2">
+                                    <span
+                                        class="text-xs text-slate-500 font-bold">Subtotal</span>
+                                    <span id="modal-subtotal"
+                                        class="text-xs font-bold text-slate-800">Rp
+                                        0</span>
+                                </div>
+                                <div
+                                    class="flex justify-between items-center mb-3">
+                                    <span
+                                        class="text-xs text-slate-500 font-bold">Kode
+                                        Unik / Layanan</span>
+                                    <span id="modal-biaya-layanan"
+                                        class="text-xs font-bold text-emerald-600">Rp
+                                        0</span>
+                                </div>
+                                <div
+                                    class="h-px bg-blue-200/50 w-full my-3"></div>
+                                <div class="flex justify-between items-center">
+                                    <span
+                                        class="text-sm text-slate-800 font-black uppercase">Total
+                                        Bayar</span>
+                                    <span id="modal-total"
+                                        class="text-2xl font-black text-blue-600 tracking-tight">Rp
+                                        0</span>
+                                </div>
+                            </div>
+
+                            <!-- Tombol Submit -->
+                            <button type="button" id="btn-proses-pembayaran" onclick="kirimKeWA()"
+                                class="w-full py-4 bg-blue-600 text-white rounded-xl font-black text-[13px] hover:bg-blue-700 shadow-lg shadow-blue-600/30 transition-all flex justify-center items-center gap-2 uppercase tracking-wider mt-2">
+                                <i class="fab fa-whatsapp text-lg"></i> Proses
+                                Pembayaran
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <script>
+        let windowProducts = [];
+        let pesananAktif = { produk: '', varian: '', harga: 0, angkaUnik: 0, total: 0, stok: 0 };
+
+        // 1. Fungsi Logika Harga Jual (Sesuai Data yang kamu berikan)
+        function hitungHargaJual(produk, varian) {
+            // A. Cek Prioritas Pertama: Data Kustom dari Admin Panel
+            const key = produk.name + "|" + varian.name + "|" + varian.price;
+            const customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+            
+            if (customSettings[key] && customSettings[key].hargaJual) {
+                if (customSettings[key].isFlashSale && customSettings[key].flashSalePrice) {
+                    // Periksa apakah flash sale masih berlaku
+                    const isNotExpired = !customSettings[key].flashSaleEnd || customSettings[key].flashSaleEnd > Date.now();
+                    if (isNotExpired) {
+                        return Number.parseInt(customSettings[key].flashSalePrice);
+                    }
+                }
+                return Number.parseInt(customSettings[key].hargaJual);
+            }
+
+            // B. Fallback: Jika belum diatur di admin panel, gunakan default (Modal + 5rb)
+            return varian.price + 5000;
+        }
+
+        // 2. Fetch API
+        async function fetchProduk() {
+            try {
+                const response = await fetch('/api/products');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const result = await response.json();
+
+                if (result.success) {
+                    windowProducts = result.data.map(produk => {
+                        let hargaTermurah = Infinity;
+                        let totalStok = 0;
+                        let isFlashSale = false;
+                        let hargaAsliTinggi = 0;
+                        let flashSaleEnd = null;
+                        
+                        if (produk.variants && produk.variants.length > 0) {
+                            produk.variants.forEach(v => {
+                                let h = hitungHargaJual(produk, v);
+                                if (h < hargaTermurah) hargaTermurah = h;
+                                totalStok += v.stock;
+                                
+                                // Cek apakah ada status Flash Sale di Local Storage
+                                const key = produk.name + "|" + v.name + "|" + v.price;
+                                const customSettings = JSON.parse(localStorage.getItem('tokoSamCustomPrices')) || {};
+                                if (customSettings[key] && customSettings[key].isFlashSale) {
+                                    const isValid = !customSettings[key].flashSaleEnd || customSettings[key].flashSaleEnd > Date.now();
+                                    if (isValid) {
+                                        isFlashSale = true;
+                                        if (!flashSaleEnd) flashSaleEnd = customSettings[key].flashSaleEnd;
+                                        if (customSettings[key].hargaJual > hargaAsliTinggi) hargaAsliTinggi = customSettings[key].hargaJual;
+                                    }
+                                }
+                            });
+                        }
+                        if (hargaTermurah === Infinity) hargaTermurah = 0;
+                        return {
+                            ...produk,
+                            hargaTermurah,
+                            totalStok,
+                            isFlashSale,
+                            hargaAsliTinggi,
+                            flashSaleEnd,
+                            angkaTerjual: Math.floor(Math.random() * 2000) + 100 
+                        };
+                    });
+                    
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('filter-container').classList.remove('hidden');
+                    document.getElementById('katalog-produk').classList.remove('hidden');
+                    
+                    inisialisasiFilter(windowProducts);
+                    renderKatalog(windowProducts);
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                document.getElementById('loading').innerHTML = `
+                    <i class="fas fa-exclamation-triangle text-4xl text-rose-500 mb-4"></i>
+                    <p class="text-slate-800 font-bold">Gagal menyinkronkan data.</p>
+                    <p class="text-xs text-rose-400 mt-2 font-medium bg-rose-50 inline-block px-3 py-1 rounded-lg">Penyebab: ${error.message}</p>
+                `;
+            }
+        }
+
+        // 3. Render Card HTML Mirip Screenshot Warung Rebahan
+        function renderKatalog(products) {
+            const wadah = document.getElementById('katalog-produk');
+            let htmlContent = '';
+
+            if (products.length === 0) {
+                wadah.innerHTML = `<div class="col-span-full text-center py-10"><p class="text-slate-500 font-bold">Produk tidak ditemukan.</p></div>`;
+                return;
+            }
+
+            products.forEach((produk) => {
+                const globalIndex = windowProducts.indexOf(produk);
+                const hargaTermurah = produk.hargaTermurah;
+                const totalStok = produk.totalStok;
+                const angkaTerjual = produk.angkaTerjual;
+                const isFlashSale = produk.isFlashSale;
+                const hargaAsliTinggi = produk.hargaAsliTinggi;
+                const flashSaleEnd = produk.flashSaleEnd;
+
+                // Ekstrak Durasi untuk Badge di Kartu
+                let durasiSet = new Set();
+                if (produk.variants) {
+                    produk.variants.forEach(v => {
+                        let d = v.duration;
+                        if (!d) {
+                            const match = v.name.match(/\(([^)]+)\)/);
+                            if (match) d = match[1];
+                        }
+                        if (d) durasiSet.add(d);
+                    });
+                }
+                let durasiBadge = '';
+                if (durasiSet.size > 0) {
+                    let durasiArr = Array.from(durasiSet);
+                    let textDurasi = durasiArr.length > 2 ? `${durasiArr[0]}, ${durasiArr[1]}...` : durasiArr.join(' / ');
+                    durasiBadge = `<div class="bg-slate-50 border border-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded-lg font-bold w-max mt-2 flex items-center gap-1.5"><i class="far fa-clock"></i> ${textDurasi}</div>`;
+                }
+
+                // Cek status stok untuk warna tombol
+                const isHabis = totalStok <= 0;
+                const styleTombol = isHabis 
+                    ? `bg-slate-100 text-slate-400 cursor-not-allowed` 
+                    : `bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-600/20`;
+                const teksTombol = isHabis ? `STOK HABIS` : `<i class="fas fa-shopping-cart"></i> BELI SEKARANG`;
+
+                const cardHTML = `
+                    <div class="bg-white rounded-[20px] border border-slate-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)] hover:shadow-[0_8px_25px_-5px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden group">
+                        
+                        <!-- Banner Flash Sale Hitung Mundur (Di atas) -->
+                        ${isFlashSale && flashSaleEnd ? `
+                        <div class="bg-gradient-to-r from-rose-600 to-rose-500 text-white text-[10px] px-3 py-2 flex justify-between items-center font-black uppercase tracking-wider">
+                            <span class="flex items-center gap-1.5"><i class="fas fa-bolt text-yellow-300 animate-pulse"></i> Flash Sale</span>
+                            <span class="flashsale-timer bg-white/20 px-2 py-0.5 rounded shadow-inner" data-endtime="${flashSaleEnd}">...</span>
+                        </div>
+                        ` : ''}
+
+                        <!-- Header Background Gradient Gelap -->
+                        <div class="relative h-44 bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#2563eb] p-3 flex flex-col items-center justify-center overflow-hidden ${isFlashSale && flashSaleEnd ? 'rounded-t-none' : ''}">
+                            <!-- Efek Glow Light -->
+                            <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-500/40 blur-2xl rounded-full group-hover:bg-blue-400/60 transition-colors"></div>
+                            
+                            <!-- Badges Kiri Kanan -->
+                            <div class="absolute top-3 left-3 bg-[#0ea5e9] text-white text-[9px] px-2 py-1 rounded font-black uppercase tracking-wider shadow-sm flex items-center gap-1">
+                                <i class="fas fa-briefcase"></i> ${produk.category.substring(0, 15)}
+                            </div>
+                            <div class="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-[9px] px-2 py-1 rounded font-black uppercase tracking-wider shadow-sm border border-white/10 flex items-center gap-1">
+                                <i class="fas fa-lock"></i> STOK: ${totalStok}
+                            </div>
+
+                            <!-- Nama Produk Tengah (Pengganti Logo) -->
+                            <h3 class="text-white font-black text-2xl text-center leading-tight drop-shadow-lg z-10 px-2 mt-4">${produk.name}</h3>
+                        </div>
+
+                        <!-- Card Body Bawah -->
+                        <div class="p-4 flex flex-col flex-1 bg-white">
+                            <h4 class="text-[14px] font-black text-slate-800 leading-tight line-clamp-1 mb-1">${produk.name}</h4>
+                            <p class="text-[10px] text-slate-500 line-clamp-2 leading-relaxed h-7">${produk.description || 'Pilih produk premium ini untuk menikmati akses tanpa batas.'}</p>
+
+                            ${durasiBadge}
+
+                            <!-- Bintang Rating -->
+                            <div class="flex items-center gap-1 text-amber-400 text-[10px] mt-2.5">
+                                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                <span class="text-slate-400 font-bold border-l border-slate-200 ml-1.5 pl-1.5 tracking-wide">${new Intl.NumberFormat('id-ID').format(angkaTerjual)} Terjual</span>
+                            </div>
+
+                            <!-- Harga -->
+                            <div class="mt-2.5">
+                                ${isFlashSale && hargaAsliTinggi > hargaTermurah ? `<span class="text-xs text-slate-400 line-through mr-1 font-bold">Rp ${new Intl.NumberFormat('id-ID').format(hargaAsliTinggi)}</span>` : ''}
+                                <span class="${isFlashSale ? 'text-rose-600' : 'text-blue-600'} font-black text-lg tracking-tight">Rp ${new Intl.NumberFormat('id-ID').format(hargaTermurah)}</span>
+                            </div>
+
+                            <!-- Tombol Aksi -->
+                            <div class="mt-auto pt-3 space-y-2">
+                                <button onclick="${isHabis ? '' : `bukaModal(${globalIndex})`}" class="w-full py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${styleTombol}">
+                                    ${teksTombol}
+                                </button>
+                                <button onclick="bukaModal(${globalIndex})" class="w-full text-center text-[10px] font-bold text-slate-400 hover:text-slate-700 uppercase tracking-widest flex items-center justify-center gap-1.5 py-1">
+                                    <i class="fas fa-eye"></i> DETAIL
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                htmlContent += cardHTML;
+            });
+            wadah.innerHTML = htmlContent;
+            
+            // Mulai Timer Hitung Mundur Setelah Cetak HTML
+            startCountdowns();
+        }
+
+        // Logika Hitung Mundur Flash Sale Global
+        let countdownInterval;
+        function startCountdowns() {
+            if(countdownInterval) clearInterval(countdownInterval);
+            
+            countdownInterval = setInterval(() => {
+                const timers = document.querySelectorAll('.flashsale-timer');
+                timers.forEach(timer => {
+                    const endTime = Number.parseInt(timer.dataset.endtime);
+                    const now = Date.now();
+                    const distance = endTime - now;
+
+                    if (distance < 0) {
+                        timer.innerHTML = "BERAKHIR";
+                        timer.classList.add("text-rose-200");
+                    } else {
+                        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                        
+                        let text = "";
+                        if(days > 0) text += days + " Hari ";
+                        text += String(hours).padStart(2, '0') + ":" + 
+                                String(minutes).padStart(2, '0') + ":" + 
+                                String(seconds).padStart(2, '0');
+                        timer.innerHTML = text;
+                    }
+                });
+            }, 1000);
+        }
+
+        // Fungsi Filter
+        function inisialisasiFilter(products) {
+            const categorySelect = document.getElementById('categoryFilter');
+            const categories = [...new Set(products.map(p => p.category))].filter(Boolean);
+            categories.forEach(kategori => {
+                categorySelect.innerHTML += `<option value="${kategori}">${kategori}</option>`;
+            });
+            document.getElementById('searchInput').addEventListener('input', terapkanFilter);
+            categorySelect.addEventListener('change', terapkanFilter);
+            document.getElementById('sortFilter').addEventListener('change', terapkanFilter);
+        }
+
+        function terapkanFilter() {
+            const kataKunci = document.getElementById('searchInput').value.toLowerCase();
+            const kategoriPilihan = document.getElementById('categoryFilter').value;
+            const sortPilihan = document.getElementById('sortFilter').value;
+
+            let filteredProducts = windowProducts.filter(produk => {
+                const matchKataKunci = produk.name.toLowerCase().includes(kataKunci);
+                const matchKategori = kategoriPilihan === 'all' || produk.category === kategoriPilihan;
+                const matchTersedia = sortPilihan !== 'tersedia' || produk.totalStok > 0;
+                
+                return matchKataKunci && matchKategori && matchTersedia;
+            });
+
+            // Terapkan Logika Pengurutan
+            if (sortPilihan === 'paling_laris') {
+                filteredProducts.sort((a, b) => b.angkaTerjual - a.angkaTerjual);
+            } else if (sortPilihan === 'termurah') {
+                filteredProducts.sort((a, b) => a.hargaTermurah - b.hargaTermurah);
+            } else if (sortPilihan === 'termahal') {
+                filteredProducts.sort((a, b) => b.hargaTermurah - a.hargaTermurah);
+            }
+
+            renderKatalog(filteredProducts);
+        }
+
+        // Fungsi Ganti Tab Modal
+        function switchTab(tab) {
+            const btnDesc = document.getElementById('btn-tab-deskripsi');
+            const btnSnk = document.getElementById('btn-tab-snk');
+            const contentDesc = document.getElementById('modal-deskripsi');
+            const contentSnk = document.getElementById('modal-snk');
+
+            if (tab === 'deskripsi') {
+                btnDesc.className = "pb-3 border-b-2 border-blue-600 text-blue-600 font-black text-[11px] uppercase tracking-widest transition-all";
+                btnSnk.className = "pb-3 border-b-2 border-transparent text-slate-400 font-bold text-[11px] uppercase tracking-widest hover:text-slate-600 transition-all";
+                contentDesc.classList.remove('hidden');
+                contentSnk.classList.add('hidden');
+            } else {
+                btnSnk.className = "pb-3 border-b-2 border-blue-600 text-blue-600 font-black text-[11px] uppercase tracking-widest transition-all";
+                btnDesc.className = "pb-3 border-b-2 border-transparent text-slate-400 font-bold text-[11px] uppercase tracking-widest hover:text-slate-600 transition-all";
+                contentSnk.classList.remove('hidden');
+                contentDesc.classList.add('hidden');
+            }
+        }
+
+        // 4. Buka Modal Checkout
+        function bukaModal(index) {
+            const produk = windowProducts[index];
+            pesananAktif.produk = produk.name;
+            
+            // Hasilkan angka unik acak dari 1 hingga 999
+            pesananAktif.angkaUnik = Math.floor(Math.random() * 999) + 1;
+
+            document.getElementById('modal-nama-produk').textContent = produk.name;
+            if(produk.description) {
+                document.getElementById('modal-deskripsi').textContent = produk.description;
+            }
+            
+            // Tampilkan info harga termurah di bagian "Transaksi Aman & Terpercaya"
+            document.getElementById('modal-info-harga').innerHTML = `Harga mulai dari: <span class="font-bold text-slate-700">Rp ${new Intl.NumberFormat('id-ID').format(produk.hargaTermurah)}</span>`;
+            
+            const selectVarian = document.getElementById('input-varian');
+            selectVarian.innerHTML = '<option value="" disabled selected>-- Pilih Durasi / Tipe Akun --</option>';
+            document.getElementById('modal-detail-varian').classList.add('hidden');
+            
+            let adaStok = false;
+            if (produk.variants) {
+                produk.variants.forEach((v) => {
+                    let hargaCustom = hitungHargaJual(produk, v);
+                    
+                    // Ekstrak Durasi, Tipe, Garansi untuk Box Detail
+                    let d = v.duration;
+                    if (!d) {
+                        const match = v.name.match(/\(([^)]+)\)/);
+                        if (match) d = match[1];
+                    }
+                    let tipeAkun = v.type || (v.name.toLowerCase().includes('private') ? 'Private' : (v.name.toLowerCase().includes('sharing') ? 'Sharing' : '-'));
+                    let garansi = v.warranty || '-';
+
+                    let namaAman = v.name.replaceAll("'", "&apos;").replaceAll('"', "&quot;");
+                    let dAman = (d || '-').replaceAll("'", "&apos;").replaceAll('"', "&quot;");
+                    let tAman = tipeAkun.replaceAll("'", "&apos;").replaceAll('"', "&quot;");
+                    let gAman = garansi.replaceAll("'", "&apos;").replaceAll('"', "&quot;");
+                    
+                    // Mengambil Syarat & Ketentuan dari API (dengan format HTML yang aman)
+                    let termsAman = v.terms ? v.terms.replaceAll('"', "&quot;").replaceAll('\n', "<br>") : "Syarat dan Ketentuan umum berlaku untuk produk ini.";
+
+                    if (v.stock > 0) {
+                        adaStok = true;
+                        selectVarian.innerHTML += `<option value="${hargaCustom}" data-nama="${namaAman}" data-terms="${termsAman}" data-durasi="${dAman}" data-tipe="${tAman}" data-garansi="${gAman}" data-stok="${v.stock}">${v.name} - Rp ${new Intl.NumberFormat('id-ID').format(hargaCustom)}</option>`;
+                    } else {
+                        // Tampilkan opsi beserta harganya dan sematkan seluruh data, hilangkan disabled agar bisa diklik untuk melihat detail
+                        selectVarian.innerHTML += `<option value="${hargaCustom}" data-nama="${namaAman}" data-terms="${termsAman}" data-durasi="${dAman}" data-tipe="${tAman}" data-garansi="${gAman}" data-stok="0">${v.name} - Rp ${new Intl.NumberFormat('id-ID').format(hargaCustom)} (Habis)</option>`;
+                    }
+                });
+            }
+
+            if (!adaStok) selectVarian.options[0].text = 'Mohon maaf, semua stok sedang kosong';
+
+            document.getElementById('modal-harga-display').textContent = `Rp ${new Intl.NumberFormat('id-ID').format(produk.hargaTermurah)}`;
+            document.getElementById('modal-subtotal').textContent = 'Rp 0';
+            document.getElementById('modal-biaya-layanan').textContent = 'Rp 0';
+            document.getElementById('modal-total').textContent = 'Rp 0';
+            
+            document.getElementById('checkoutModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        // 5. Update Harga Form
+        function updateHargaModal() {
+            const select = document.getElementById('input-varian');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (selectedOption.value !== "") {
+                const harga = Number.parseInt(selectedOption.value);
+                const total = harga + pesananAktif.angkaUnik;
+                const stok = Number.parseInt(selectedOption.dataset.stok);
+                
+                const formatHarga = `Rp ${new Intl.NumberFormat('id-ID').format(harga)}`;
+                const formatUnik = `Rp ${new Intl.NumberFormat('id-ID').format(pesananAktif.angkaUnik)}`;
+                const formatTotal = `Rp ${new Intl.NumberFormat('id-ID').format(total)}`;
+                
+                document.getElementById('modal-harga-display').textContent = formatHarga;
+                document.getElementById('modal-subtotal').textContent = formatHarga;
+                document.getElementById('modal-biaya-layanan').textContent = formatUnik;
+                document.getElementById('modal-total').textContent = formatTotal;
+                
+                // Tampilkan Syarat dan Ketentuan Varian yang Terpilih
+                const terms = selectedOption.dataset.terms;
+                document.getElementById('modal-snk').innerHTML = terms || 'Pilih varian/paket untuk melihat Syarat dan Ketentuan.';
+                
+                // Update UI Detail Ekstra (Durasi, Tipe, Garansi)
+                document.getElementById('modal-detail-varian').classList.remove('hidden');
+                document.getElementById('detail-durasi').textContent = selectedOption.dataset.durasi || '-';
+                document.getElementById('detail-tipe').textContent = selectedOption.dataset.tipe || '-';
+                document.getElementById('detail-garansi').textContent = selectedOption.dataset.garansi || '-';
+
+                pesananAktif.varian = selectedOption.dataset.nama;
+                pesananAktif.harga = harga;
+                pesananAktif.total = total;
+                pesananAktif.stok = stok;
+
+                const btnBayar = document.getElementById('btn-proses-pembayaran');
+                // Gunakan isNaN sebagai pengaman ekstra jika API tidak mengirimkan nilai stok
+                if (stok <= 0 || Number.isNaN(stok)) {
+                    btnBayar.disabled = true;
+                    btnBayar.className = "w-full py-4 bg-slate-200 text-slate-400 rounded-xl font-black text-[13px] transition-all flex justify-center items-center gap-2 uppercase tracking-wider mt-2 cursor-not-allowed";
+                    btnBayar.innerHTML = `<i class="fas fa-times-circle text-lg"></i> Stok Habis`;
+                } else {
+                    btnBayar.disabled = false;
+                    btnBayar.className = "w-full py-4 bg-blue-600 text-white rounded-xl font-black text-[13px] hover:bg-blue-700 shadow-lg shadow-blue-600/30 transition-all flex justify-center items-center gap-2 uppercase tracking-wider mt-2";
+                    btnBayar.innerHTML = `<i class="fab fa-whatsapp text-lg"></i> Proses Pembayaran`;
+                }
+            }
+        }
+
+        // 6. Tutup Modal
+        function tutupModal() {
+            document.getElementById('checkoutModal').classList.add('hidden');
+            document.body.style.overflow = 'auto'; 
+            document.getElementById('input-nama').value = '';
+            document.getElementById('input-catatan').value = '';
+            pesananAktif = { produk: '', varian: '', harga: 0, angkaUnik: 0, total: 0, stok: 0 };
+            
+            const btnBayar = document.getElementById('btn-proses-pembayaran');
+            btnBayar.disabled = false;
+            btnBayar.className = "w-full py-4 bg-blue-600 text-white rounded-xl font-black text-[13px] hover:bg-blue-700 shadow-lg shadow-blue-600/30 transition-all flex justify-center items-center gap-2 uppercase tracking-wider mt-2";
+            btnBayar.innerHTML = `<i class="fab fa-whatsapp text-lg"></i> Proses Pembayaran`;
+        }
+
+        // 7. Kirim ke WhatsApp
+        function kirimKeWA() {
+            if (!pesananAktif.varian || pesananAktif.harga === 0) {
+                alert("Silakan pilih varian/paket terlebih dahulu!");
+                return;
+            }
+            if (pesananAktif.stok <= 0) {
+                alert("Mohon maaf, varian ini sedang kehabisan stok.");
+                return;
+            }
+            const nama = document.getElementById('input-nama').value.trim();
+            const catatan = document.getElementById('input-catatan').value.trim();
+
+            if (!nama) {
+                alert("Mohon isi Nama Lengkap Anda!");
+                return;
+            }
+
+            const nomorWA = "62882003733215";
+            let pesan = `Halo Admin Toko Sam, saya ingin order:\n\n`;
+            pesan += `*Produk:* ${pesananAktif.produk}\n`;
+            pesan += `*Paket:* ${pesananAktif.varian}\n`;
+            pesan += `*Harga:* Rp ${new Intl.NumberFormat('id-ID').format(pesananAktif.harga)}\n`;
+            pesan += `*Kode Unik:* Rp ${new Intl.NumberFormat('id-ID').format(pesananAktif.angkaUnik)}\n`;
+            pesan += `*Total Bayar:* *Rp ${new Intl.NumberFormat('id-ID').format(pesananAktif.total)}*\n`;
+            pesan += `--------------------------\n`;
+            pesan += `*Atas Nama:* ${nama}\n`;
+            if (catatan) pesan += `*Catatan:* ${catatan}\n`;
+            pesan += `\nMohon info pembayaran QRIS/Rekeningnya. Terima kasih!`;
+
+            window.open(`https://wa.me/${nomorWA}?text=${encodeURIComponent(pesan)}`, '_blank');
+            tutupModal();
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchProduk);
+    </script>
+    </body>
+</html>
