@@ -345,7 +345,8 @@
                             </div>
 
                             <!-- Tombol Submit -->
-                            <button type="button" id="btn-proses-pembayaran" onclick="kirimKeWA()"
+                            <button type="button" id="btn-proses-pembayaran"
+                                onclick="kirimKeWA()"
                                 class="w-full py-4 bg-blue-600 text-white rounded-xl font-black text-[13px] hover:bg-blue-700 shadow-lg shadow-blue-600/30 transition-all flex justify-center items-center gap-2 uppercase tracking-wider mt-2">
                                 <i class="fab fa-whatsapp text-lg"></i> Proses
                                 Pembayaran
@@ -360,6 +361,144 @@
         <script>
         let windowProducts = [];
         let pesananAktif = { produk: '', varian: '', harga: 0, angkaUnik: 0, total: 0, stok: 0 };
+
+        // 0. Fungsi Data Harga Bawaan Universal (Agar HP & Laptop Sama)
+        function getHargaTable(produk, varian) {
+            const p = produk.name.toLowerCase();
+            const v = varian.name.toLowerCase();
+            const d = (varian.duration || "").toLowerCase();
+            const t = (varian.type || "").toLowerCase();
+            const teks = p + " " + v + " " + d + " " + t; 
+            const modal = varian.price; 
+            
+            // Aturan Harga dengan Struktur Array
+            const rules = [
+                { key: "netflix", checks: [
+                    { k: "anti limit", p: 33597 }, { k: "legal", p: 50396 }
+                ]},
+                { key: "spotify", fallback: 27998 },
+                { key: "youtube", checks: [
+                    { k: "private", p: 33597 }, { k: "90", p: 33597 },
+                    { k: "invite", p: 11199 }, { k: "30", p: 11199 }
+                ]},
+                { key: "vidio", checks: [
+                    { k: "all", p: 50396 }, { k: "device", p: 50396 },
+                    { k: "mobile", p: 39197 }, { k: "hp", p: 39197 },
+                    { k: "tv", p: 16799 }, { k: "350", p: 16799 }, { k: "only", p: 16799 }
+                ]},
+                { key: "disney", checks: [
+                    { k: "jaspay", k2: "365", p: 291174 }, { k: "jaspay", k2: "tahun", p: 291174 },
+                    { k: "3u", k2: "350", p: 156786 },
+                    { k: "jaspay", k2: "30", p: 128789 },
+                    { k: "3u", k2: "30", p: 55995 }
+                ]},
+                { key: "prime", checks: [
+                    { k: "garansi 20", p: 22398 },
+                    { k: "no garansi", p: 16799 }, { k: "tanpa", p: 16799 }
+                ]},
+                { key: "bstation", checks: [
+                    { k: "350", p: 27998 }, { k: "tahun", p: 27998 },
+                    { k: "90", p: 13439 }, { k: "3 bulan", p: 13439 }
+                ]},
+                { key: "viu", checks: [
+                    { k: "9999", p: 16799 }, { k: "lifetime", p: 16799 }, { m: 5000, p: 16799 },
+                    { k: "300", p: 5600 }, { m: 1000, p: 5600 }
+                ]},
+                { key: "wetv", checks: [
+                    { k: "private", p: 39197 }, { m: 23000, p: 39197 },
+                    { k: "sharing", p: 20158 }, { m: 10000, p: 20158 }
+                ]},
+                { key: ["crunchyroll", "youku", "drakor", "iqiyi"], fallback: 16799 },
+                { key: "apple music", fallback: 11199 },
+                { key: "chatgpt", checks: [ { k: "invite", p: 16799 } ] },
+                { key: "codex", checks: [
+                    { k: "individual garansi", p: 39197 }, { m: 18000, p: 39197 },
+                    { k: "invite garansi", p: 27998 }, { m: 13000, p: 27998 },
+                    { k: "go", p: 22398 }, { k: "90", p: 22398 }, { k: "3 bulan", p: 22398 }, { m: 9000, p: 22398 },
+                    { k: "individual", p: 22398 }, { k: "30", p: 22398 }, { m: 10000, p: 22398 }
+                ]},
+                { key: "claude", checks: [
+                    { k: "private", k2: "garansi", p: 268776 }, { m: 190000, p: 268776 },
+                    { k: "private", p: 179184 }, { m: 125000, p: 179184 },
+                    { k: "sharing", p: 61595 }, { m: 35000, p: 61595 }
+                ]},
+                { key: "gemini", checks: [
+                    { k: "350", p: 55995 }, { m: 25000, p: 55995 },
+                    { k: "120", p: 27998 }, { m: 12000, p: 27998 }
+                ]},
+                { key: "grok", checks: [
+                    { k: "garansi", p: 39197 }, { m: 20000, p: 39197 },
+                    { k: "private", p: 33597 }, { k: "20", p: 33597 }, { m: 14000, p: 33597 },
+                    { k: "sharing", p: 16799 }, { k: "14", p: 16799 }, { m: 5000, p: 16799 }
+                ]},
+                { key: "devin", fallback: 16799 },
+                { key: "canva", checks: [
+                    { k: "edu", p: 16799 }, { k: "lifetime", p: 16799 }, { k: "365", p: 16799 },
+                    { k: "350", p: 16799 },
+                    { k: "head", p: 11199 }, { m: 4000, p: 11199 },
+                    { k: "30", p: 5600 }
+                ]},
+                { key: "capcut", checks: [
+                    { k: "auto renew", p: 16799 }, { k: "35", p: 16799 }, { m: 3200, p: 16799 },
+                    { defaultPrice: 11199 }
+                ]},
+                { key: ["alight", "picsart"], fallback: 11199 },
+                { key: ["wink", "meitu"], checks: [
+                    { k: "bundle", p: 16799 }, { k: "plus", p: 16799 }, { m: 7000, p: 16799 },
+                    { defaultPrice: 11199 }
+                ]},
+                { key: "adobe", checks: [
+                    { k: "120", p: 95192 }, { k: "garansi", p: 95192 }, { m: 50000, p: 95192 },
+                    { k: "90", p: 67194 }, { k: "pro", p: 67194 }, { m: 30000, p: 67194 }
+                ]},
+                { key: "office", checks: [
+                    { k: "custom user garansi", p: 151187 }, { m: 80000, p: 151187 },
+                    { k: "garansi 180", p: 134388 }, { k: "180", p: 134388 }, { m: 70000, p: 134388 },
+                    { k: "custom username", p: 89592 }, { m: 40000, p: 89592 },
+                    { k: "no garansi", p: 72794 }, { k: "tanpa", p: 72794 }, { m: 30000, p: 72794 }
+                ]},
+                { key: "windows", checks: [
+                    { k: "350", p: 128789 }, { k: "garansi", p: 128789 }, { m: 70000, p: 128789 },
+                    { k: "no garansi", p: 55995 }, { m: 20000, p: 55995 }
+                ]},
+                { key: "github", checks: [
+                    { k: "copilot", p: 83993 }, { k: "30", p: 83993 }, { m: 40000, p: 83993 },
+                    { k: "student", p: 72794 }, { k: "350", p: 72794 }, { m: 35000, p: 72794 }
+                ]},
+                { key: "pdf", checks: [
+                    { k: "private", p: 33597 }, { k: "30", p: 33597 }, { m: 15000, p: 33597 },
+                    { k: "sharing", p: 27998 }, { k: "300", p: 27998 }, { m: 10000, p: 27998 }
+                ]},
+                { key: "zoom", fallback: 16799 },
+                { key: "camscanner", fallback: 5600 },
+                { key: "getcontact", fallback: 13439 },
+                { key: "surfshark", fallback: 44796 },
+                { key: ["hma", "express"], fallback: 13439 }
+            ];
+
+            for (const rule of rules) {
+                const keys = Array.isArray(rule.key) ? rule.key : [rule.key];
+                if (keys.some(k => p.includes(k))) {
+                    if (rule.fallback !== undefined) return rule.fallback;
+                    for (const check of rule.checks) {
+                        if (check.defaultPrice !== undefined) return check.defaultPrice;
+                        
+                        let match = false;
+                        if (check.k && check.k2) {
+                            match = teks.includes(check.k) && teks.includes(check.k2);
+                        } else if (check.k) {
+                            match = teks.includes(check.k);
+                        } else if (check.m) {
+                            match = modal === check.m;
+                        }
+                        
+                        if (match) return check.p;
+                    }
+                }
+            }
+
+            return null;
+        }
 
         // 1. Fungsi Logika Harga Jual (Sesuai Data yang kamu berikan)
         function hitungHargaJual(produk, varian) {
@@ -378,7 +517,11 @@
                 return Number.parseInt(customSettings[key].hargaJual);
             }
 
-            // B. Fallback: Jika belum diatur di admin panel, gunakan default (Modal + 5rb)
+            // B. Cek Prioritas Kedua: Gunakan Data Harga Universal dari Tabel
+            const hargaTabel = getHargaTable(produk, varian);
+            if (hargaTabel !== null) return hargaTabel;
+
+            // C. Fallback Terakhir: Jika produk baru sama sekali dan belum diatur, gunakan (Modal + 5rb)
             return varian.price + 5000;
         }
 
