@@ -131,13 +131,23 @@
                                 <input type="number" id="edit-harga-flashsale"
                                     class="w-full px-4 py-3 bg-white border border-rose-200 rounded-xl focus:border-rose-500 outline-none font-black text-rose-600">
                             </div>
-                            <div>
-                                <label for="edit-waktu-flashsale"
-                                    class="block text-[10px] font-black text-rose-500 mb-1.5 tracking-wider">BATAS
-                                    WAKTU (BERAKHIR PADA)</label>
-                                <input type="datetime-local"
-                                    id="edit-waktu-flashsale"
-                                    class="w-full px-4 py-3 bg-white border border-rose-200 rounded-xl focus:border-rose-500 outline-none font-bold text-slate-700 text-sm">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="edit-waktu-flashsale-start"
+                                        class="block text-[10px] font-black text-rose-500 mb-1.5 tracking-wider">MULAI
+                                        PADA</label>
+                                    <input type="datetime-local"
+                                        id="edit-waktu-flashsale-start"
+                                        class="w-full px-3 py-3 bg-white border border-rose-200 rounded-xl focus:border-rose-500 outline-none font-bold text-slate-700 text-xs">
+                                </div>
+                                <div>
+                                    <label for="edit-waktu-flashsale-end"
+                                        class="block text-[10px] font-black text-rose-500 mb-1.5 tracking-wider">BERAKHIR
+                                        PADA</label>
+                                    <input type="datetime-local"
+                                        id="edit-waktu-flashsale-end"
+                                        class="w-full px-3 py-3 bg-white border border-rose-200 rounded-xl focus:border-rose-500 outline-none font-bold text-slate-700 text-xs">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -323,13 +333,34 @@
                                     harga jual kustom dan flash sale untuk
                                     setiap varian.</p>
                             </div>
-                            <div class="relative w-full md:w-64 shrink-0">
-                                <i
-                                    class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                <input type="text" id="searchAdminProduct"
-                                    onkeyup="filterAdminProducts()"
-                                    placeholder="Cari produk / varian..."
-                                    class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:border-blue-500 outline-none">
+                            <div
+                                class="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
+                                <div class="relative w-full sm:w-48">
+                                    <i
+                                        class="fas fa-sort absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <select id="sortAdminProduct"
+                                        onchange="filterAdminProducts()"
+                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                                        <option value="default">Urutan
+                                            Default</option>
+                                        <option value="nama_az">Nama (A -
+                                            Z)</option>
+                                        <option value="stok_banyak">Stok
+                                            Terbanyak</option>
+                                        <option value="stok_sedikit">Stok
+                                            Tersedikit</option>
+                                    </select>
+                                    <i
+                                        class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                </div>
+                                <div class="relative w-full sm:w-56">
+                                    <i
+                                        class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="text" id="searchAdminProduct"
+                                        onkeyup="filterAdminProducts()"
+                                        placeholder="Cari produk / varian..."
+                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:border-blue-500 outline-none">
+                                </div>
                             </div>
                         </div>
                         <div class="overflow-x-auto flex-1">
@@ -340,6 +371,7 @@
                                         class="border-b-2 border-slate-200 text-[10px] uppercase tracking-widest text-slate-400">
                                         <th class="pb-3 font-black">Produk &
                                             Varian</th>
+                                        <th class="pb-3 font-black">Stok</th>
                                         <th class="pb-3 font-black">Harga
                                             Modal</th>
                                         <th class="pb-3 font-black">Harga
@@ -523,62 +555,90 @@
             function renderAdminProducts() {
                 const tbody = document.getElementById('admin-product-list');
                 const keyword = document.getElementById('searchAdminProduct')?.value.toLowerCase() || "";
+                const sortVal = document.getElementById('sortAdminProduct')?.value || "default";
                 tbody.innerHTML = '';
                 
                 // Ambil setelan harga dari Cloud
                 const customSettings = globalCustomPrices;
 
+                // Flatten produk & varian agar mudah diurutkan
+                let displayList = [];
                 adminGlobalProducts.forEach((produk, pIdx) => {
                     if (!produk.variants) return;
-                    
                     produk.variants.forEach((varian, vIdx) => {
-                        const searchStr = (produk.name + " " + varian.name).toLowerCase();
-                        if (keyword && !searchStr.includes(keyword)) return;
-
-                        const key = produk.name + "|" + varian.name + "|" + varian.price;
-                        const setting = customSettings[key];
-                        
-                        // Hitung harga bawaan simulasi (Modal + 5rb) jika belum ada kustom
-                        let hargaModal = varian.price;
-                        let hargaJualDef = hargaModal + 5000; 
-                        let activeJual = setting ? setting.hargaJual : hargaJualDef;
-                        let activeIsFlash = setting ? setting.isFlashSale : false;
-                        let activeFlashPrice = setting ? setting.flashSalePrice : 0;
-                        let activeFlashEnd = setting ? setting.flashSaleEnd : null;
-                        
-                        let flashStatusText = `<span class="text-slate-300 text-xs font-bold">-</span>`;
-                        if (activeIsFlash) {
-                            const isNotExpired = !activeFlashEnd || activeFlashEnd > Date.now();
-                            if (isNotExpired) {
-                                flashStatusText = `<span class="bg-rose-100 text-rose-600 text-[10px] px-2 py-1.5 rounded-lg font-black flex flex-col gap-0.5 w-max">
-                                                    <span><i class="fas fa-bolt"></i> Rp ${new Intl.NumberFormat('id-ID').format(activeFlashPrice)}</span>
-                                                    ${activeFlashEnd ? `<span class="text-[9px] opacity-80 mt-0.5 font-bold">Berakhir: ${new Date(activeFlashEnd).toLocaleString('id-ID', {day: 'numeric', month: 'short', hour:'2-digit', minute:'2-digit'})}</span>` : ''}
-                                                </span>`;
-                            } else {
-                                flashStatusText = `<span class="bg-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded font-black w-max"><i class="fas fa-history"></i> Kedaluwarsa</span>`;
-                            }
-                        }
-
-                        const row = document.createElement('tr');
-                        row.className = "border-b border-slate-100 hover:bg-slate-50 transition-colors";
-                        row.innerHTML = `
-                            <td class="py-3 pr-4">
-                                <div class="font-black text-slate-800">${produk.name}</div>
-                                <div class="text-xs font-bold text-slate-500">${varian.name}</div>
-                            </td>
-                            <td class="py-3 pr-4 font-bold text-slate-500">Rp ${new Intl.NumberFormat('id-ID').format(hargaModal)}</td>
-                            <td class="py-3 pr-4 font-black text-blue-600">Rp ${new Intl.NumberFormat('id-ID').format(activeJual)}</td>
-                            <td class="py-3 pr-4">
-                                ${flashStatusText}
-                            </td>
-                            <td class="py-3 text-right">
-                                <button onclick="openEditProductModal(${pIdx}, ${vIdx})" class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors shadow-sm inline-flex items-center justify-center">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </td>
-                        `;
-                        tbody.appendChild(row);
+                        displayList.push({ pIdx, vIdx, produk, varian });
                     });
+                });
+
+                // Filter by keyword
+                if (keyword) {
+                    displayList = displayList.filter(item => (item.produk.name + " " + item.varian.name).toLowerCase().includes(keyword));
+                }
+
+                // Sorting
+                if (sortVal === 'nama_az') displayList.sort((a,b) => (a.produk.name + a.varian.name).localeCompare(b.produk.name + b.varian.name));
+                else if (sortVal === 'stok_banyak') displayList.sort((a,b) => b.varian.stock - a.varian.stock);
+                else if (sortVal === 'stok_sedikit') displayList.sort((a,b) => a.varian.stock - b.varian.stock);
+
+                // Loop untuk merender baris
+                displayList.forEach((item) => {
+                    const { pIdx, vIdx, produk, varian } = item;
+                    const key = produk.name + "|" + varian.name + "|" + varian.price;
+                    const setting = customSettings[key];
+                    
+                    // Hitung harga bawaan simulasi (Modal + 5rb) jika belum ada kustom
+                    let hargaModal = varian.price;
+                    let hargaJualDef = hargaModal + 5000; 
+                    let activeJual = setting ? setting.hargaJual : hargaJualDef;
+                    let activeIsFlash = setting ? setting.isFlashSale : false;
+                    let activeFlashPrice = setting ? setting.flashSalePrice : 0;
+                    let activeFlashStart = setting ? setting.flashSaleStart : null;
+                    let activeFlashEnd = setting ? setting.flashSaleEnd : null;
+                    
+                    let flashStatusText = `<span class="text-slate-300 text-xs font-bold">-</span>`;
+                    if (activeIsFlash) {
+                        const now = Date.now();
+                        const startOk = !activeFlashStart || activeFlashStart <= now;
+                        const endOk = !activeFlashEnd || activeFlashEnd > now;
+                        
+                        let statusBadge = '';
+                        if (!startOk) statusBadge = `<span class="bg-amber-100 text-amber-600 text-[10px] px-2 py-1 rounded font-black w-max mb-1"><i class="fas fa-clock"></i> Akan Datang</span>`;
+                        else if (startOk && endOk) statusBadge = `<span class="bg-rose-100 text-rose-600 text-[10px] px-2 py-1 rounded font-black w-max mb-1"><i class="fas fa-bolt animate-pulse"></i> Sedang Aktif</span>`;
+                        else statusBadge = `<span class="bg-slate-100 text-slate-500 text-[10px] px-2 py-1 rounded font-black w-max mb-1"><i class="fas fa-history"></i> Kedaluwarsa</span>`;
+
+                        flashStatusText = `<div class="flex flex-col gap-0.5">
+                                            ${statusBadge}
+                                            <span class="font-black text-slate-700 text-xs">Rp ${new Intl.NumberFormat('id-ID').format(activeFlashPrice)}</span>
+                                            ${activeFlashStart ? `<span class="text-[9px] text-slate-500 font-bold mt-0.5">Mulai: ${new Date(activeFlashStart).toLocaleString('id-ID', {day: 'numeric', month: 'short', hour:'2-digit', minute:'2-digit'})}</span>` : ''}
+                                            ${activeFlashEnd ? `<span class="text-[9px] text-slate-500 font-bold">Akhir: ${new Date(activeFlashEnd).toLocaleString('id-ID', {day: 'numeric', month: 'short', hour:'2-digit', minute:'2-digit'})}</span>` : ''}
+                                            </div>`;
+                    }
+
+                    const isHabis = varian.stock <= 0;
+                    const row = document.createElement('tr');
+                    row.className = `border-b border-slate-100 transition-colors ${isHabis ? 'bg-rose-50/50' : 'hover:bg-slate-50'}`;
+                    row.innerHTML = `
+                        <td class="py-3 pr-4">
+                            <div class="font-black text-slate-800">${produk.name}</div>
+                            <div class="text-xs font-bold text-slate-500">${varian.name}</div>
+                        </td>
+                        <td class="py-3 pr-4">
+                            <span class="${isHabis ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-600'} text-[10px] font-black px-2.5 py-1 rounded-md border ${isHabis ? 'border-rose-200' : 'border-slate-200'}">
+                                ${varian.stock}
+                            </span>
+                        </td>
+                        <td class="py-3 pr-4 font-bold text-slate-500">Rp ${new Intl.NumberFormat('id-ID').format(hargaModal)}</td>
+                        <td class="py-3 pr-4 font-black text-blue-600">Rp ${new Intl.NumberFormat('id-ID').format(activeJual)}</td>
+                        <td class="py-3 pr-4">
+                            ${flashStatusText}
+                        </td>
+                        <td class="py-3 text-right">
+                            <button onclick="openEditProductModal(${pIdx}, ${vIdx})" class="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors shadow-sm inline-flex items-center justify-center">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
                 });
             }
 
@@ -602,7 +662,8 @@
                 
                 // Format datetime-local timezone (Menyesuaikan zona waktu lokal komputer)
                 let tzoffset = (new Date()).getTimezoneOffset() * 60000; 
-                document.getElementById('edit-waktu-flashsale').value = setting && setting.flashSaleEnd ? new Date(setting.flashSaleEnd - tzoffset).toISOString().slice(0, 16) : '';
+                document.getElementById('edit-waktu-flashsale-start').value = setting && setting.flashSaleStart ? new Date(setting.flashSaleStart - tzoffset).toISOString().slice(0, 16) : '';
+                document.getElementById('edit-waktu-flashsale-end').value = setting && setting.flashSaleEnd ? new Date(setting.flashSaleEnd - tzoffset).toISOString().slice(0, 16) : '';
                 
                 toggleFlashSaleInput();
                 document.getElementById('editProductModal').classList.remove('hidden');
@@ -629,7 +690,9 @@
                 const hargaJual = Number.parseInt(document.getElementById('edit-harga-jual').value);
                 const isFlashSale = document.getElementById('edit-is-flashsale').checked;
                 const flashSalePrice = Number.parseInt(document.getElementById('edit-harga-flashsale').value);
-                const flashEndInput = document.getElementById('edit-waktu-flashsale').value;
+                const flashStartInput = document.getElementById('edit-waktu-flashsale-start').value;
+                const flashEndInput = document.getElementById('edit-waktu-flashsale-end').value;
+                const flashSaleStart = isFlashSale && flashStartInput ? new Date(flashStartInput).getTime() : null;
                 const flashSaleEnd = isFlashSale && flashEndInput ? new Date(flashEndInput).getTime() : null;
 
                 const varian = adminGlobalProducts[pIdx].variants[vIdx];
@@ -641,6 +704,7 @@
                     hargaJual: hargaJual,
                     isFlashSale: isFlashSale,
                     flashSalePrice: isFlashSale ? flashSalePrice : null,
+                    flashSaleStart: flashSaleStart,
                     flashSaleEnd: flashSaleEnd
                 };
 
